@@ -1,12 +1,14 @@
 <?php
 
+require __DIR__ . "/../Config/Database.php";
+
 class ClientModel
 {
     private $db;
 
-    public function __construct($dbConn)
+    public function __construct()
     {
-        $this->db = $dbConn;
+        $this->db = Database::getConn();
     }
 
     public function getClient()

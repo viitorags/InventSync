@@ -1,12 +1,14 @@
 <?php
 
+require __DIR__ . "/../Config/Database.php";
+
 class UserModel
 {
     private $db;
 
-    public function __construct($dbConn)
+    public function __construct()
     {
-        $this->db = $dbConn;
+        $this->db = Database::getConn();
     }
 
     public function generateUniqueId()
@@ -41,11 +43,11 @@ class UserModel
         try {
             $id = $this->generateUniqueId();
             $query = "INSERT INTO users (
-                user_id, 
-                user_name, 
+                user_id,
+                user_name,
                 user_email,
                 user_img,
-                user_password) 
+                user_password)
             VALUES (:user_id, :user_name, :user_email, :user_img, :user_password)";
 
             $stmt = $this->db->prepare($query);
@@ -64,8 +66,8 @@ class UserModel
     public function updateUser($user_id, $user_name, $user_email, $user_img, $user_password)
     {
         try {
-            $query = "UPDATE users 
-                  SET user_name = :user_name, user_email = :user_email, user_img = :user_img, user_password = :user_password 
+            $query = "UPDATE users
+                  SET user_name = :user_name, user_email = :user_email, user_img = :user_img, user_password = :user_password
                   WHERE user_id = :user_id";
             $stmt = $this->db->prepare($query);
             $stmt->execute([

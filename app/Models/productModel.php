@@ -1,12 +1,14 @@
 <?php
 
+require __DIR__ . "/../Config/Database.php";
+
 class ProductModel
 {
     private $db;
 
-    public function __construct($dbConn)
+    public function __construct()
     {
-        $this->db = $dbConn;
+        $this->db = Database::getConn();
     }
 
     public function getAllProducts()
@@ -26,10 +28,10 @@ class ProductModel
     {
         try {
             $query = "INSERT INTO products (
-                product_name, 
-                product_price, 
-                product_amount, 
-                user_id) 
+                product_name,
+                product_price,
+                product_amount,
+                user_id)
             VALUES (:product_name, :product_price, :product_amount, :user_id)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
@@ -47,7 +49,7 @@ class ProductModel
     public function updateProduct($product_id, $product_name, $product_price, $product_amount)
     {
         try {
-            $query = "UPDATE products 
+            $query = "UPDATE products
                       SET product_name = :product_name,
                           product_price = :product_price,
                           product_amount = :product_amount
