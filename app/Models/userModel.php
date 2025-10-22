@@ -25,12 +25,14 @@ class UserModel
     public function getUser($user_id)
     {
         try {
-            $query = "SELECT * FROM users WHERE user_id = ?";
+            $query = "SELECT * FROM users WHERE user_id = :user_id";
 
             $stmt = $this->db->prepare($query);
-            $stmt->execute([$user_id]);
-        } catch (Exception $err) {
+            $stmt->execute(['user_id' => $user_id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $err) {
             echo "Erro ao obter usuário: " . $err->getMessage();
+            return false;
         }
     }
 
@@ -44,11 +46,17 @@ class UserModel
                 user_email,
                 user_img,
                 user_password) 
-            VALUES (?, ?, ?, ?, ?)";
+            VALUES (:user_id, :user_name, :user_email, :user_img, :user_password)";
 
             $stmt = $this->db->prepare($query);
-            $stmt->execute([$id, $user_name, $user_email, $user_img, $user_password]);
-        } catch (Exception $err) {
+            $stmt->execute([
+                'user_id' => $id,
+                'user_name' => $user_name,
+                'user_email' => $user_email,
+                'user_img' => $user_img,
+                'user_password' => $user_password
+            ]);
+        } catch (PDOException $err) {
             echo "Erro ao criar usuário " . $err->getMessage();
         }
     }
@@ -57,11 +65,17 @@ class UserModel
     {
         try {
             $query = "UPDATE users 
-                  SET user_name = ?, user_email = ?, user_img = ?, user_password = ? 
-                  WHERE user_id = ?";
+                  SET user_name = :user_name, user_email = :user_email, user_img = :user_img, user_password = :user_password 
+                  WHERE user_id = :user_id";
             $stmt = $this->db->prepare($query);
-            $stmt->execute([$user_name, $user_email, $user_img, $user_password, $user_id]);
-        } catch (Exception $err) {
+            $stmt->execute([
+                'user_name' => $user_name,
+                'user_email' => $user_email,
+                'user_img' => $user_img,
+                'user_password' => $user_password,
+                'user_id' => $user_id
+            ]);
+        } catch (PDOException $err) {
             echo "Erro ao atualizar usuário: " . $err->getMessage();
         }
     }
@@ -69,10 +83,11 @@ class UserModel
     public function deleteUser($user_id)
     {
         try {
-            $query = "DELETE FROM users WHERE user_id = ?";
+            $query = "DELETE FROM users WHERE user_id = :user_id";
             $stmt = $this->db->prepare($query);
-            $stmt->execute([$user_id]);
-        } catch (Exception $err) {
+            $stmt->execute(['user_id' => $user_id]);
+            return $stmt->rowCount();
+        } catch (PDOException $err) {
             echo "Erro ao deletar usuário: " . $err->getMessage();
         }
     }
