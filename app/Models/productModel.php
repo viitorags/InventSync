@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/../Config/Database.php";
+require_once __DIR__ . '/../Config/Database.php';
 
 class ProductModel
 {
@@ -33,7 +33,6 @@ class ProductModel
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $err) {
             throw $err;
-            return false;
         }
     }
 
