@@ -45,6 +45,9 @@ $router->add('GET', '/orders', function () {
 $router->add('GET', '/customer', function () {
     include __DIR__ . "/../Views/customer.php";
 });
+$router->add('GET', '/configurations', function () {
+    include __DIR__ . '/../Views/configurations.php';
+});
 
 // APIs EndPoints
 $router->add('GET', '/api/produtos', function () {
@@ -57,7 +60,7 @@ $router->add('POST', '/api/produtos', function () {
     $controller->createNewProduct();
 });
 
-$router->add('PUT', '/api/produtos/', function () {
+$router->add('PUT', '/api/produtos', function () {
     $controller = new ProductController();
     $controller->updateProduct();
 });
@@ -68,6 +71,16 @@ $router->add('DELETE', '/api/produtos', function () {
 });
 
 // User API endpoints
+$router->add('POST', '/api/login', function () {
+    $controller =  new UserController();
+    $controller->loginUser();
+});
+
+$router->add('POST', '/api/logout', function () {
+    $controller = new UserController();
+    $controller->logoutUser();
+});
+
 $router->add('GET', '/api/users', function () {
     $controller = new UserController();
     $controller->getUser();
