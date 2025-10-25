@@ -56,8 +56,8 @@ body {
 .stock_area {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: flex-end;
+    justify-content: flex-start;
+    align-items: stretch;
     gap: 24px;
     padding: 24px;
     width: calc(100% - 40px);
@@ -67,6 +67,8 @@ body {
         margin-left 0.5s,
         width 0.5s;
     overflow-x: hidden;
+    overflow-y: auto;
+    flex: 1;
 }
 
 .functions_area {

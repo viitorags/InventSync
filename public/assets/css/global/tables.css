@@ -6,6 +6,7 @@
     width: 100%;
     overflow-x: auto;
     margin-top: var(--spacing-md);
+    min-height: 300px;
 }
 
 table {
@@ -14,6 +15,9 @@ table {
     border-spacing: 0;
     margin-top: 0;
     font-size: 0.9rem;
+    /* Allow table to expand naturally but maintain header alignment */
+    table-layout: auto;
+    min-width: 100%;
 }
 
 th {
@@ -169,6 +173,8 @@ tr:hover {
 .date-display {
     display: flex;
     align-items: center;
+    /* Critical: min-width: 0 forces flex children to respect parent overflow */
+    min-width: 0;
 }
 
 .product-icon,
@@ -182,6 +188,8 @@ tr:hover {
     background-color: rgba(67, 97, 238, 0.1);
     border-radius: 50%;
     margin-right: 10px;
+    /* Prevent icon from shrinking */
+    flex-shrink: 0;
 }
 
 .product-icon i,
@@ -197,6 +205,8 @@ tr:hover {
     margin-right: 6px;
     font-size: 14px;
     color: var(--gray);
+    /* Prevent icon from shrinking */
+    flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
@@ -273,6 +283,14 @@ tr:hover {
     .editar span,
     .remove_product span {
         display: none;
+    }
+
+    /* Garantir que palavras longas quebrem em mobile */
+    td,
+    th {
+        word-break: break-word;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
     }
 }
 

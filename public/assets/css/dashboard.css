@@ -322,7 +322,9 @@ body {
     font-weight: 700;
     color: #1c1c1e;
     margin-bottom: 8px;
-    line-height: 1;
+    line-height: 1.2;
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .card_trend {
@@ -413,7 +415,7 @@ body {
     width: 100%;
     max-width: 100%;
     overflow: visible;
-    display: flex;
+    display: none;
     flex-direction: column;
 }
 
@@ -495,6 +497,7 @@ body {
 }
 
 .recent-orders {
+    display: none;
     overflow-x: auto;
     overflow-y: visible;
     margin: 0;
@@ -526,8 +529,8 @@ body {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    min-width: 700px;
-    table-layout: fixed;
+    min-width: 100%;
+    table-layout: auto;
     margin-bottom: 20px;
 }
 
@@ -848,6 +851,7 @@ body {
     }
 
     .recent-orders-card {
+        display: none;
         padding: 20px;
         overflow: visible;
     }
@@ -859,11 +863,14 @@ body {
 
     .recent-orders {
         min-height: 350px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .recent-orders table {
-        min-width: 650px;
+        min-width: 100%;
         font-size: 0.85rem;
+        table-layout: auto;
     }
 
     .recent-orders th,
@@ -875,11 +882,38 @@ body {
     .recent-orders th:first-child,
     .recent-orders td:first-child {
         padding-left: 14px;
+        width: auto;
     }
 
     .recent-orders th:last-child,
     .recent-orders td:last-child {
         padding-right: 14px;
+        width: auto;
+    }
+
+    .recent-orders th:nth-child(1),
+    .recent-orders td:nth-child(1) {
+        width: auto;
+    }
+
+    .recent-orders th:nth-child(2),
+    .recent-orders td:nth-child(2) {
+        width: auto;
+    }
+
+    .recent-orders th:nth-child(3),
+    .recent-orders td:nth-child(3) {
+        width: auto;
+    }
+
+    .recent-orders th:nth-child(4),
+    .recent-orders td:nth-child(4) {
+        width: auto;
+    }
+
+    .recent-orders th:nth-child(5),
+    .recent-orders td:nth-child(5) {
+        width: auto;
     }
 
     .status-indicator {
@@ -890,10 +924,10 @@ body {
 
 @media (max-width: 576px) {
     .dashboard_area {
-        margin-left: 70px;
-        width: calc(100% - 80px);
-        padding: 12px;
-        gap: 12px;
+        margin-left: 50px;
+        width: calc(100% - 50px);
+        padding: 8px;
+        gap: 8px;
     }
 
     .welcome-banner {
@@ -994,18 +1028,29 @@ body {
     }
 
     .recent-orders-card {
-        padding: 16px;
+        display: none;
+        padding: 8px;
         overflow: visible;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
     .card-header-section {
         flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
+        gap: 8px;
+        margin-bottom: 12px;
     }
 
     .card-header-section h3 {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .card-header-section i {
+        font-size: 1rem;
     }
 
     .view-all-link {
@@ -1014,13 +1059,44 @@ body {
     }
 
     .recent-orders {
-        overflow-x: visible;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
         min-height: auto;
+        width: 100%;
+        padding: 0;
     }
 
     .recent-orders table {
         min-width: 100%;
-        display: block;
+        table-layout: auto;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .recent-orders th:nth-child(1),
+    .recent-orders td:nth-child(1) {
+        width: auto;
+    }
+
+    .recent-orders th:nth-child(2),
+    .recent-orders td:nth-child(2) {
+        width: auto;
+    }
+
+    .recent-orders th:nth-child(3),
+    .recent-orders td:nth-child(3) {
+        width: auto;
+    }
+
+    .recent-orders th:nth-child(4),
+    .recent-orders td:nth-child(4) {
+        width: auto;
+    }
+
+    .recent-orders th:nth-child(5),
+    .recent-orders td:nth-child(5) {
+        width: auto;
+        text-align: left;
     }
 
     .recent-orders thead {
@@ -1034,11 +1110,13 @@ body {
 
     .recent-orders tbody tr {
         display: block;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         background: #f9f9fb;
-        border-radius: 12px;
-        padding: 14px;
+        border-radius: 8px;
+        padding: 10px;
         border: 1px solid #e5e5ea;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .recent-orders tbody tr:hover {
@@ -1049,9 +1127,16 @@ body {
     .recent-orders td {
         display: block;
         text-align: left;
-        padding: 10px 0;
+        padding: 4px 0;
         border-bottom: 1px solid #e5e5ea;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        overflow: visible;
+        text-overflow: initial;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .recent-orders td:last-child {
@@ -1068,14 +1153,19 @@ body {
         display: block;
         font-weight: 600;
         color: #8e8e93;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 6px;
+        margin-bottom: 3px;
+        word-break: break-word;
+        white-space: normal;
+        overflow: visible;
     }
 
     .recent-orders td i {
         margin-right: 6px;
+        flex-shrink: 0;
+        display: inline-block;
     }
 
     .status-indicator {
@@ -1083,11 +1173,9 @@ body {
         padding: 6px 12px;
         font-size: 0.75rem;
         margin-top: 4px;
+        white-space: nowrap;
+        flex-wrap: nowrap;
     }
-}
-
-.feedback-notification {
-    animation: slideInRight 0.3s ease;
 }
 
 @keyframes slideInRight {
