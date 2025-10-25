@@ -18,7 +18,7 @@
 }
 
 .form_area h2::after {
-    content: "";
+    content: '';
     position: absolute;
     bottom: 0;
     left: 0;
@@ -67,7 +67,7 @@ form textarea:focus {
     box-shadow: 0 0 0 3px rgba(255, 65, 108, 0.2);
 }
 
-form button[type="submit"] {
+form button[type='submit'] {
     background: var(--primary-gradient);
     color: white;
     border: none;
@@ -79,7 +79,7 @@ form button[type="submit"] {
     margin-top: var(--spacing-sm);
 }
 
-form button[type="submit"]:hover {
+form button[type='submit']:hover {
     background: var(--primary);
     transform: translateY(-2px);
     box-shadow: var(--shadow);
@@ -104,7 +104,7 @@ form button[type="submit"]:hover {
         font-size: 0.85rem;
     }
 
-    form button[type="submit"] {
+    form button[type='submit'] {
         padding: 10px 16px;
     }
 }
@@ -125,7 +125,7 @@ form button[type="submit"]:hover {
         height: 38px;
     }
 
-    form button[type="submit"] {
+    form button[type='submit'] {
         font-size: 8px;
     }
 }

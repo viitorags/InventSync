@@ -54,7 +54,8 @@ tr:hover {
 
 .visualizar,
 .editar,
-.remove_product {
+.remove_product,
+.remove_order {
     padding: 8px 14px;
     border: none;
     border-radius: var(--border-radius-sm);
@@ -91,7 +92,8 @@ tr:hover {
     transform: translateY(-1px);
 }
 
-.remove_product {
+.remove_product,
+.remove_order {
     background-color: var(--danger);
 }
 
@@ -99,7 +101,8 @@ tr:hover {
     display: none;
 }
 
-.remove_product:hover {
+.remove_product:hover,
+.remove_order:hover {
     background-color: var(--primary-dark);
 }
 
@@ -220,7 +223,8 @@ tr:hover {
 
     .visualizar,
     .editar,
-    .remove_product {
+    .remove_product,
+    .remove_order {
         font-size: 8px;
     }
 
@@ -261,7 +265,8 @@ tr:hover {
 
     .visualizar,
     .editar,
-    .remove_product {
+    .remove_product,
+    .remove_order {
         padding: 5px 8px;
     }
 
@@ -318,7 +323,8 @@ tr:hover {
 
     .visualizar,
     .editar,
-    .remove_product {
+    .remove_product,
+    .remove_order {
         width: auto;
         font-size: 0.75rem;
         padding: 6px 10px;
