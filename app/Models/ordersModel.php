@@ -40,9 +40,16 @@ class OrdersModel
     public function getOrdersByUser($user_id)
     {
         try {
-            $query = "SELECT o.* FROM orders o
+            $query = "SELECT
+                        o.*,
+                        GROUP_CONCAT(p.product_name SEPARATOR ', ') as product_name,
+                        GROUP_CONCAT(p.product_id) as product_ids
+                      FROM orders o
                       INNER JOIN clients c ON o.client_id = c.client_id
+                      LEFT JOIN ordersproduct op ON o.order_id = op.order_id
+                      LEFT JOIN products p ON op.product_id = p.product_id
                       WHERE c.user_id = :user_id
+                      GROUP BY o.order_id
                       ORDER BY o.order_date DESC";
             $stmt = $this->db->prepare($query);
             $stmt->execute(['user_id' => $user_id]);
@@ -115,9 +122,11 @@ class OrdersModel
         $client_name,
         $client_number,
         $order_price,
-        $user_id
+        $client_id
     ) {
         try {
+            $this->db->beginTransaction();
+
             $query = "
                 UPDATE orders
                 SET order_details = :order_details,
@@ -135,9 +144,11 @@ class OrdersModel
                 'client_name'  => $client_name,
                 'client_number' => $client_number,
                 'order_price' => $order_price,
-                'client_id' => $user_id,
+                'client_id' => $client_id,
                 'order_id' => $order_id,
             ]);
+
+            $this->db->commit();
 
             $selectQuery = "SELECT * FROM orders WHERE order_id = :order_id";
             $selectStmt = $this->db->prepare($selectQuery);
@@ -145,6 +156,7 @@ class OrdersModel
             $result = $selectStmt->fetch(PDO::FETCH_ASSOC);
             return $result;
         } catch (PDOException $err) {
+            $this->db->rollBack();
             throw $err;
         }
     }
@@ -152,11 +164,21 @@ class OrdersModel
     public function deleteOrder($order_id)
     {
         try {
-            $query = "DELETE FROM orders WHERE order_id = :order_id";
-            $stmt = $this->db->prepare($query);
+            $this->db->beginTransaction();
+
+            $deleteOrdersProduct = "DELETE FROM ordersproduct WHERE order_id = :order_id";
+            $stmtOP = $this->db->prepare($deleteOrdersProduct);
+            $stmtOP->execute(['order_id' => $order_id]);
+
+            $deleteOrder = "DELETE FROM orders WHERE order_id = :order_id";
+            $stmt = $this->db->prepare($deleteOrder);
             $stmt->execute(['order_id' => $order_id]);
+
+            $this->db->commit();
+
             return $stmt->rowCount();
         } catch (PDOException $err) {
+            $this->db->rollBack();
             throw $err;
         }
     }
