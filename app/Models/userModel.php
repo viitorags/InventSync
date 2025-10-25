@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . "/../Config/Database.php";
+require_once __DIR__ . "/../Config/Database.php";
 
 class UserModel
 {
@@ -15,13 +15,25 @@ class UserModel
     {
         do {
             $id = random_int(100000, 999999);
-            $stmt = $this->db->prepare("SELECT id FROM users WHERE id = :id");
+            $stmt = $this->db->prepare("SELECT user_id FROM users WHERE user_id = :id");
             $stmt->execute(['id' => $id]);
 
             $exists = $stmt->fetch();
         } while ($exists);
 
         return $id;
+    }
+
+    public function getUserByEmail($email)
+    {
+        try {
+            $query = "SELECT * FROM users WHERE user_email = :email LIMIT 1";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute(['email' => $email]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $err) {
+            throw $err;
+        }
     }
 
     public function getUser($user_id)
@@ -58,8 +70,10 @@ class UserModel
                 'user_img' => $user_img,
                 'user_password' => $user_password
             ]);
+
+            return $id;
         } catch (PDOException $err) {
-            echo "Erro ao criar usuário " . $err->getMessage();
+            throw $err;
         }
     }
 
@@ -78,7 +92,7 @@ class UserModel
                 'user_id' => $user_id
             ]);
         } catch (PDOException $err) {
-            echo "Erro ao atualizar usuário: " . $err->getMessage();
+            throw $err;
         }
     }
 
@@ -90,7 +104,7 @@ class UserModel
             $stmt->execute(['user_id' => $user_id]);
             return $stmt->rowCount();
         } catch (PDOException $err) {
-            echo "Erro ao deletar usuário: " . $err->getMessage();
+            throw $err;
         }
     }
 }

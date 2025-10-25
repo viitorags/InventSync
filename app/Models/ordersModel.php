@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . "/../Config/Database.php";
+require_once __DIR__ . "/../Config/Database.php";
 
 class OrdersModel
 {
@@ -11,17 +11,45 @@ class OrdersModel
         $this->db = Database::getConn();
     }
 
-    public function getOrder()
+    public function generateUniqueId()
+    {
+        do {
+            $id = random_int(100000, 999999);
+            $stmt = $this->db->prepare("SELECT order_id FROM orders WHERE order_id = :id");
+            $stmt->execute(['id' => $id]);
+
+            $exists = $stmt->fetch();
+        } while ($exists);
+
+        return $id;
+    }
+
+    public function getOrder($client_id)
     {
         try {
-            $query = "SELECT * FROM orders";
+            $query = "SELECT * FROM orders WHERE client_id = :client_id";
             $stmt = $this->db->prepare($query);
-            $stmt->execute();
+            $stmt->execute(['client_id' => $client_id]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            return $result[0] ?? null;
+            return $result;
         } catch (PDOException $err) {
-            echo "Erro ao obter pedidos " . $err->getMessage();
-            return null;
+            throw $err;
+        }
+    }
+
+    public function getOrdersByUser($user_id)
+    {
+        try {
+            $query = "SELECT o.* FROM orders o
+                      INNER JOIN clients c ON o.client_id = c.client_id
+                      WHERE c.user_id = :user_id
+                      ORDER BY o.order_date DESC";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute(['user_id' => $user_id]);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (PDOException $err) {
+            throw $err;
         }
     }
 
@@ -37,14 +65,24 @@ class OrdersModel
     ) {
         $clientIdInt = (int)$client_id;
         try {
+            $id = $this->generateUniqueId();
             $this->db->beginTransaction();
 
             $orderQuery = "
-                INSERT INTO orders (order_details, order_date, order_status, order_price, client_name, client_number, client_id)
-                VALUES (:order_details, :order_date, :order_status, :order_price, :client_name, :client_number, :client_id)
+            INSERT INTO orders (
+                order_id,
+                order_details,
+                order_date,
+                order_status,
+                order_price,
+                client_name,
+                client_number,
+                client_id)
+                VALUES (:order_id ,:order_details, :order_date, :order_status, :order_price, :client_name, :client_number, :client_id)
             ";
             $stmt = $this->db->prepare($orderQuery);
             $stmt->execute([
+                'order_id' => $id,
                 'order_details' => $order_details,
                 'order_date' => $order_date,
                 'order_status' => $order_status,
@@ -53,21 +91,20 @@ class OrdersModel
                 'client_number' => $client_number,
                 'client_id' => $clientIdInt,
             ]);
-            $order_id = $this->db->lastInsertId();
 
             $orderProductQuery = "INSERT INTO ordersproduct (order_id, product_id) VALUES (?, ?)";
             $stmtProduct = $this->db->prepare($orderProductQuery);
 
             foreach ($product_ids as $product_id) {
-                $stmtProduct->execute([$order_id, (int)$product_id]);
+                $stmtProduct->execute([$id, (int)$product_id]);
             }
 
             $this->db->commit();
 
-            return ['order_id' => $order_id];
+            return ['order_id' => $id];
         } catch (PDOException $err) {
             $this->db->rollBack();
-            echo "Erro ao criar pedido " . $err->getMessage();
+            throw $err;
         }
     }
 
@@ -108,7 +145,7 @@ class OrdersModel
             $result = $selectStmt->fetch(PDO::FETCH_ASSOC);
             return $result;
         } catch (PDOException $err) {
-            echo "Erro ao atualizar pedido " . $err->getMessage();
+            throw $err;
         }
     }
 
@@ -120,7 +157,7 @@ class OrdersModel
             $stmt->execute(['order_id' => $order_id]);
             return $stmt->rowCount();
         } catch (PDOException $err) {
-            echo "Erro ao deletar pedido " . $err->getMessage();
+            throw $err;
         }
     }
 }
