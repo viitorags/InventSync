@@ -1,0 +1,59 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+Dockerfile
+docker-compose.yml
+
+# Editores / IDEs
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+*~
+*.swp
+
+# Dependências / Composer
+/vendor/
+composer.phar
+
+# Configurações de ambiente
+.env
+.env.*.local
+.env.local
+
+# Logs, cache e temporários
+/logs/
+*.log
+/cache/
+/tmp/
+*.cache
+phpunit-result.cache
+.phpunit.result.cache
+
+# Testes / cobertura
+coverage/
+coverage.xml
+phpunit-output.xml
+
+# Assets / build
+/node_modules/
+dist/
+build/
+*.zip
+*.tar.gz
+
+# Bancos de dados locais
+*.sqlite
+*.sqlite3
+*.db
+
+# Uploads e arquivos gerados
+/uploads/
+/storage/
+
+# Arquivos binários / compilados
+*.exe
+*.dll
+*.so
+*.pyc
