@@ -4,6 +4,7 @@ require_once __DIR__ . "/../Controllers/userController.php";
 require_once __DIR__ . "/../Controllers/productController.php";
 require_once __DIR__ . "/../Controllers/clientController.php";
 require_once __DIR__ . "/../Controllers/ordersController.php";
+require_once __DIR__ . "/../Controllers/reportsController.php";
 
 class Router
 {
@@ -141,4 +142,17 @@ $router->add('PUT', '/api/orders', function () {
 $router->add('DELETE', '/api/orders', function () {
     $controller = new OrdersController();
     $controller->deleteOrder();
+});
+
+// Reports API endpoints
+$router->add('GET', '/api/reports/excel', function () {
+    $controller = new ReportsController();
+    $reportType = $_GET['type'] ?? 'sales';
+    $controller->generateExcelReport($reportType);
+});
+
+$router->add('GET', '/api/reports/pdf', function () {
+    $controller = new ReportsController();
+    $reportType = $_GET['type'] ?? 'sales';
+    $controller->generatePDFReport($reportType);
 });
