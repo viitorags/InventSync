@@ -1,10 +1,19 @@
+<?php
+
+if (isset($_SESSION['user_id'])) {
+    header('Location: /dashboard');
+    exit();
+}
+
+?>
+
 <!doctype html>
 <html lang="pt-br">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/css/signup.css" />
+    <link rel="stylesheet" href="assets/css/signup.css" />
     <title>Cadastro | Sistema de Estoque</title>
 </head>
 
@@ -24,7 +33,7 @@
                 </div>
                 <div class="file_box">
                     <label for="profileImg">Foto de Perfil (até 1MB)</label>
-                    <input type="file" name="user_img" id="user_img" accept="image/*" required />
+                    <input type="file" name="user_img" id="profile_img" accept="image/*" required />
                 </div>
                 <div class="input_box">
                     <label for="password">Senha</label>
@@ -48,14 +57,14 @@
         <div class="signup_informations">
             <h2>Bem vindo ao Sistema de Estoque</h2>
             <div class="sign_icon">
-                <img src="/images/icons/signup.svg" alt="" />
+                <img src="assets/images/icons/signup.svg" alt="" />
             </div>
             <p>Já tem uma conta? Faça login agora!</p>
             <button type="button" class="btn_href_login">Entrar</button>
         </div>
     </main>
 
-    <script src="/js/signup/signup.js"></script>
+    <script src="assets/js/signup/signup.js"></script>
 </body>
 
 </html>

@@ -1,3 +1,12 @@
+<?php
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: /');
+    exit();
+}
+
+?>
+
 <!doctype html>
 <html lang="pt-br">
 
@@ -10,13 +19,13 @@
     <?php include __DIR__ . '/./partials/sidebar.php'; ?>
     <main class="container">
         <div class="functions_area">
-            <div class="functions_buttons">
-                <a href="/customer/export" class="download-relatory-btn">
-                    <i class="bi bi-file-earmark-arrow-down"></i>
-                    <span>Baixar relatório</span>
-                </a>
+            <div class="page-header">
+                <div class="page-title">
+                    <i class="bi bi-people"></i>
+                    <h1>Gerenciamento de Clientes</h1>
+                </div>
                 <a class="open-modal-btn" data-modal-target="customerModal">
-                    <i class="bi bi-plus-circle"></i>
+                    <i class="bi bi-person-plus"></i>
                     <span>Novo Cliente</span>
                 </a>
             </div>
@@ -51,16 +60,16 @@
                         </tr>
                     </thead>
                     <tbody id="clientTableBody">
-                        <?php include('./partials/pages/customer/customerTable.php'); ?>
+                        <?php include __DIR__ . '/./partials/pages/customer/customerTable.php'; ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <script src="/js/global.js"></script>
-    <script src="/js/customer/registerUpdateClient.js"></script>
-    <script src="/js/customer/deleteClient.js"></script>
+    <script src="assets/js/global.js"></script>
+    <script src="assets/js/customer/registerUpdateClient.js"></script>
+    <script src="assets/js/customer/deleteClient.js"></script>
 </body>
 
 </html>

@@ -1,3 +1,14 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: /');
+    exit();
+}
+?>
+
 <!doctype html>
 <html lang="pt-br">
 
@@ -10,11 +21,11 @@
     <?php include __DIR__ . '/./partials/sidebar.php'; ?>
     <main class="container">
         <div class="functions_area">
-            <div class="functions_buttons">
-                <a href="/orders/export" class="download-relatory-btn">
-                    <i class="bi bi-file-earmark-arrow-down"></i>
-                    <span>Baixar relatório</span>
-                </a>
+            <div class="page-header">
+                <div class="page-title">
+                    <i class="bi bi-people"></i>
+                    <h1>Gerenciamento de Pedidos</h1>
+                </div>
                 <a class="open-modal-btn" data-modal-target="ordersModal">
                     <i class="bi bi-plus-circle"></i>
                     <span>Novo Pedido</span>
@@ -28,6 +39,14 @@
                         <h2>Cadastro Pedidos</h2>
                         <button class="modal-close">&times;</button>
                     </div>
+                    <?php
+
+                    require_once __DIR__ . '/../Controllers/viewsController.php';
+
+                    $viewsController = new ViewsController();
+                    $products = $viewsController->getAllProducts();
+                    $clients = $viewsController->getClient();
+                    ?>
                     <form id="ordersForm">
                         <label for="order_details">
                             Detalhes do Pedido:
@@ -40,8 +59,10 @@
                         <select name="products[]" id="products" multiple required>
                             <?php if (count($products) > 0): ?>
                                 <?php foreach ($products as $product): ?>
-                                    <option value="<?php echo htmlspecialchars($product['product_id']); ?>">
-                                        <?php echo htmlspecialchars($product['product_name']); ?>
+                                    <option value="<?php echo htmlspecialchars($product['product_id']); ?>"
+                                        data-price="<?php echo htmlspecialchars($product['product_price']); ?>">
+                                        <?php echo htmlspecialchars($product['product_name']); ?> - R$
+                                        <?php echo number_format($product['product_price'], 2, ',', '.'); ?>
                                     </option>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -51,12 +72,14 @@
                             <?php if (count($clients) > 0): ?>
                                 <?php foreach ($clients as $client): ?>
                                     <option value="<?php echo htmlspecialchars($client['client_name']); ?>"
+                                        data-id="<?php echo htmlspecialchars($client['client_id']); ?>"
                                         data-number="<?php echo htmlspecialchars($client['client_number']); ?>">
                                         <?php echo htmlspecialchars($client['client_name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </select>
+                        <input type="hidden" name="client_id" id="client_id" />
                         <label for="client_number">
                             Número do Cliente:
                         </label>
@@ -93,16 +116,17 @@
                         </tr>
                     </thead>
                     <tbody id="ordersTableBody">
-                        <?php include('./partials/pages/orders/ordersTable.php'); ?>
+                        <?php include __DIR__ . '/./partials/pages/orders/ordersTable.php'; ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <script src="js/orders/registerUpdateOrder.js"></script>
-    <script src="js/global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+    <script src="assets/js/global.js"></script>
+    <script src="assets/js/orders/registerUpdateOrder.js"></script>
+    <script src="assets/js/orders/deleteOrder.js"></script>
     <script>
         new TomSelect("#products", {
             plugins: ["remove_button"],

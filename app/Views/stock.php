@@ -1,3 +1,12 @@
+<?php
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: /');
+    exit();
+}
+
+?>
+
 <!doctype html>
 <html lang="pt-br">
 
@@ -10,11 +19,11 @@
     <?php include __DIR__ . '/./partials/sidebar.php'; ?>
     <main class="container">
         <div class="functions_area">
-            <div class="functions_buttons">
-                <a href="/stock/export" class="download-relatory-btn">
-                    <i class="bi bi-file-earmark-arrow-down"></i>
-                    <span>Baixar relatório</span>
-                </a>
+            <div class="page-header">
+                <div class="page-title">
+                    <i class="bi bi-box-seam"></i>
+                    <h1>Gerenciamento de Estoque</h1>
+                </div>
                 <a class="open-modal-btn" data-modal-target="productModal">
                     <i class="bi bi-plus-circle"></i>
                     <span>Novo Produto</span>
@@ -36,7 +45,7 @@
                         <input type="number" name="product_price" id="product_price" placeholder="0.00" step="0.01"
                             min="0" required />
                         <label for="product_quantity">Quantidade:</label>
-                        <input type="number" name="product_quantity" id="product_quantity" placeholder="0" min="0"
+                        <input type="number" name="product_amount" id="product_quantity" placeholder="0" min="0"
                             required />
                         <button type="submit">
                             <i class="bi bi-plus-circle"></i>
@@ -64,9 +73,9 @@
         </div>
     </main>
 
-    <script src="/js/stock/registerUpdateProduct.js"></script>
-    <script src="/js/stock/deleteProduct.js"></script>
-    <script src="/js/global.js"></script>
+    <script src="/assets/js/stock/registerUpdateProduct.js"></script>
+    <script src="/assets/js/stock/deleteProduct.js"></script>
+    <script src="/assets/js/global.js"></script>
 </body>
 
 </html>

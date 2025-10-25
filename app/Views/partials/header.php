@@ -1,6 +1,5 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<!-- No EJS content to convert in this file -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -34,9 +33,11 @@
         --spacing-xl: 32px;
     }
 </style>
-<link rel="stylesheet" href="/css/stock.css" />
-<link rel="stylesheet" href="/css/dashboard.css" />
-<link rel="stylesheet" href="/css/global/tables.css" />
-<link rel="stylesheet" href="/css/global/sidebar_menu.css" />
-<link rel="stylesheet" href="/css/global/form-styles.css" />
-<link rel="stylesheet" href="/css/global/modal.css" />
+<link rel="stylesheet" href="/assets/css/stock.css" />
+<link rel="stylesheet" href="/assets/css/dashboard.css" />
+<link rel="stylesheet" href="/assets/css/global/tables.css" />
+<link rel="stylesheet" href="/assets/css/global/sidebar_menu.css" />
+<link rel="stylesheet" href="/assets/css/global/form-styles.css" />
+<link rel="stylesheet" href="/assets/css/global/modal.css" />
+<link rel="stylesheet" href="/assets/css/global/feedback.css" />
+<script src="/assets/js/feedback.js"></script>

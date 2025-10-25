@@ -1,11 +1,20 @@
+<?php
+require_once __DIR__ . "/../../Controllers/viewsController.php";
+
+$viewsController = new ViewsController();
+$user = $viewsController->getUserData();
+$userImg = $user['user_img'] ?? '/assets/images/profile.png';
+$userName = $_SESSION['user_name'] ?? 'Usuário';
+$date = date("d/m/Y");
+?>
+
 <nav id="sidebar">
     <div id="sidebar_content">
         <div id="user">
-            <img src="/images/profile.png" id="user_avatar" alt="Avatar" />
-
+            <?php echo "<img src='$userImg' id='user_avatar' alt='Avatar' />" ?>
             <p id="user_infos">
-                <span class="item-description user_name">Fulano de Tal</span>
-                <span class="item-description info_data">Lorem Ipsum</span>
+                <?php echo "<span class='item-description user_name'>$_SESSION[user_name]</span>" ?>
+                <?php echo "<span class='item-description info_data'>$date</span>" ?>
             </p>
         </div>
 
@@ -39,10 +48,10 @@
             </li>
 
             <li class="side-item">
-                <a href="#">
+                <a href="/configurations">
                     <i class="fa-solid fa-gear"></i>
                     <span class="item-description">
-                        Configurações (Em Breve)
+                        Configurações
                     </span>
                 </a>
             </li>

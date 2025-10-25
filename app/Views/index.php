@@ -1,10 +1,19 @@
+<?php
+
+if (isset($_SESSION['user_id'])) {
+    header('Location: /dashboard');
+    exit();
+}
+
+?>
+
 <!doctype html>
 <html lang="pt-br">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/css/index.css" />
+    <link rel="stylesheet" href="assets/css/index.css" />
     <title>Login | Sistema de Estoque</title>
 </head>
 
@@ -13,7 +22,7 @@
         <div class="login_informations">
             <h2>Bem vindo de volta!</h2>
             <div class="login_icon">
-                <img src="/images/icons/login.svg" alt="" />
+                <img src="assets/images/icons/login.svg" alt="" />
             </div>
             <p>Não tem uma conta ainda? Junte-se a nós!</p>
             <button type="button" class="btn_href_register">
@@ -44,7 +53,7 @@
         </div>
     </main>
 
-    <script src="/js/index/index.js"></script>
+    <script src="assets/js/index/index.js"></script>
 </body>
 
 </html>
