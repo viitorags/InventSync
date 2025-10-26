@@ -15,7 +15,6 @@ table {
     border-spacing: 0;
     margin-top: 0;
     font-size: 0.9rem;
-    /* Allow table to expand naturally but maintain header alignment */
     table-layout: auto;
     min-width: 100%;
 }
@@ -173,7 +172,6 @@ tr:hover {
 .date-display {
     display: flex;
     align-items: center;
-    /* Critical: min-width: 0 forces flex children to respect parent overflow */
     min-width: 0;
 }
 
@@ -188,7 +186,6 @@ tr:hover {
     background-color: rgba(67, 97, 238, 0.1);
     border-radius: 50%;
     margin-right: 10px;
-    /* Prevent icon from shrinking */
     flex-shrink: 0;
 }
 
@@ -205,7 +202,6 @@ tr:hover {
     margin-right: 6px;
     font-size: 14px;
     color: var(--gray);
-    /* Prevent icon from shrinking */
     flex-shrink: 0;
 }
 
@@ -285,7 +281,6 @@ tr:hover {
         display: none;
     }
 
-    /* Garantir que palavras longas quebrem em mobile */
     td,
     th {
         word-break: break-word;
