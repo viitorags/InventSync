@@ -13,6 +13,10 @@ class UserController
 
     public function loginUser()
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         $user_email = $_POST['user_email'] ?? '';
         $user_password = $_POST['user_password'] ?? '';
 
@@ -25,35 +29,28 @@ class UserController
 
         $user = $this->userModel->getUserByEmail($user_email);
 
-        if (!$user) {
+        if (!$user || !password_verify($user_password, $user['user_password'])) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
             http_response_code(401);
             return;
         }
 
-        if (password_verify($user_password, $user['user_password'])) {
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
+        $_SESSION['user_id'] = $user['user_id'];
+        $_SESSION['user_name'] = $user['user_name'];
+        $_SESSION['user_email'] = $user['user_email'];
 
-            $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['user_name'] = $user['user_name'];
-            $_SESSION['user_email'] = $user['user_email'];
-
-            header('Content-Type: application/json');
-            echo json_encode(['success' => true, 'message' => 'Login successful', 'user' => [
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'message' => 'Login successful',
+            'user' => [
                 'name' => $user['user_name'],
                 'email' => $user['user_email']
-            ]]);
-            http_response_code(200);
-        } else {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
-            http_response_code(401);
-        }
+            ]
+        ]);
+        http_response_code(200);
     }
-
     public function getUser()
     {
         $user_id = $_SESSION['user_id'];
