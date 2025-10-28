@@ -69,7 +69,7 @@ if (is_array($orders)) {
             <div class="welcome-banner">
                 <div class="banner-content">
                     <div class="welcome-text">
-                        <?php echo "<h1>Olá, " . htmlspecialchars($_SESSION['user_name']) . "! 👋</h1>"; ?>
+                        <?php echo "<h1>Olá, " . htmlspecialchars($_SESSION['user_name']) . "!</h1>"; ?>
                         <p class="subtitle">
                             Bem-vindo(a) ao seu painel de controle. Aqui está o resumo
                             do seu negócio hoje.
