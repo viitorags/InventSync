@@ -12,12 +12,10 @@
     visibility: hidden;
     transition: all 0.3s ease;
 }
-
 .modal-overlay.active {
     opacity: 1;
     visibility: visible;
 }
-
 .modal-container {
     border-radius: var(--border-radius);
     width: 100%;
@@ -29,18 +27,15 @@
     max-height: 90vh;
     overflow-y: auto;
 }
-
 .modal-overlay.active .modal-container {
     transform: translateY(0);
 }
-
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-md);
 }
-
 .modal-header h2 {
     color: var(--dark);
     font-size: 1.5rem;
@@ -49,7 +44,6 @@
     padding-bottom: var(--spacing-sm);
     margin-bottom: 0;
 }
-
 .modal-header h2::after {
     content: '';
     position: absolute;
@@ -60,7 +54,6 @@
     background: var(--primary);
     border-radius: 2px;
 }
-
 .modal-close {
     background: none;
     border: none;
@@ -69,11 +62,9 @@
     color: var(--gray);
     transition: color 0.3s ease;
 }
-
 .modal-close:hover {
     color: var(--danger);
 }
-
 .open-modal-btn {
     display: inline-flex;
     align-items: center;
@@ -91,7 +82,6 @@
     margin-bottom: 0;
     text-decoration: none;
 }
-
 .open-modal-btn:hover {
     background: var(--primary);
     transform: translateY(-2px);
@@ -100,7 +90,6 @@
 .open-modal-btn:active {
     transform: translateY(0);
 }
-
 .report-modal-overlay {
     position: fixed;
     top: 0;
@@ -116,7 +105,6 @@
     opacity: 1;
     visibility: visible;
 }
-
 .report-modal-content {
     background: white;
     border-radius: 12px;
@@ -126,7 +114,6 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     animation: modalSlideIn 0.3s ease;
 }
-
 @keyframes modalSlideIn {
     from {
         transform: translateY(-50px);
@@ -137,7 +124,6 @@
         opacity: 1;
     }
 }
-
 .report-modal-header {
     display: flex;
     justify-content: space-between;
@@ -146,7 +132,6 @@
     border-bottom: 2px solid #f0f0f0;
     padding-bottom: 15px;
 }
-
 .report-modal-header h3 {
     color: #333;
     font-size: 1.5rem;
@@ -155,11 +140,9 @@
     align-items: center;
     gap: 10px;
 }
-
 .report-modal-header h3 i {
     color: var(--primary);
 }
-
 .report-modal-close {
     background: transparent;
     border: none;
@@ -170,24 +153,20 @@
     padding: 5px 10px;
     border-radius: 4px;
 }
-
 .report-modal-close:hover {
     color: var(--primary);
     background: #f0f0f0;
 }
-
 .report-modal-body p {
     color: #666;
     margin-bottom: 20px;
     font-size: 1rem;
 }
-
 .report-options {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
-
 .report-option-btn {
     background: white;
     border: 2px solid #e0e0e0;
@@ -200,35 +179,26 @@
     flex-direction: column;
     gap: 8px;
 }
-
 .report-option-btn:hover {
     border-color: var(--primary);
-    background: linear-gradient(
-        135deg,
-        rgba(255, 75, 43, 0.05),
-        rgba(255, 65, 108, 0.05)
-    );
+    background: linear-gradient(135deg, rgba(255, 75, 43, 0.05), rgba(255, 65, 108, 0.05));
     transform: translateX(5px);
     box-shadow: 0 5px 15px rgba(255, 75, 43, 0.1);
 }
-
 .report-option-btn i {
     font-size: 2rem;
     color: var(--primary);
     margin-bottom: 5px;
 }
-
 .report-option-btn span {
     font-size: 1.1rem;
     font-weight: 600;
     color: #333;
 }
-
 .report-option-btn small {
     font-size: 0.9rem;
     color: #666;
 }
-
 @media (max-width: 768px) {
     .modal-overlay {
         position: absolute;
@@ -238,46 +208,36 @@
         width: 80%;
         margin-left: 20px;
     }
-
     .modal-container {
         width: 80%;
         padding: 15px;
     }
-
     .modal-header h2 {
         font-size: 1.3rem;
     }
-
     .open-modal-btn span {
         display: none;
     }
-
     .report-modal-content {
         width: 95%;
         padding: 20px;
     }
-
     .report-modal-header h3 {
         font-size: 1.2rem;
     }
-
     .report-option-btn {
         padding: 15px;
     }
-
     .report-option-btn i {
         font-size: 1.5rem;
     }
-
     .report-option-btn span {
         font-size: 1rem;
     }
-
     .report-option-btn small {
         font-size: 0.85rem;
     }
 }
-
 @media (max-width: 576px) {
     .modal-overlay {
         position: absolute;
@@ -287,43 +247,43 @@
         width: 80%;
         margin-left: 20px;
     }
-
     .modal-container {
         width: 80%;
         padding: 10px;
     }
-
     .modal-header h2 {
         font-size: 1.2rem;
     }
-
     .open-modal-btn {
         padding: 8px 12px;
         font-size: 0.9rem;
     }
-
     .report-modal-content {
         width: 95%;
         padding: 15px;
     }
-
     .report-modal-header h3 {
         font-size: 1rem;
     }
-
     .report-option-btn {
         padding: 12px;
     }
-
     .report-option-btn i {
         font-size: 1.3rem;
     }
-
     .report-option-btn span {
         font-size: 0.95rem;
     }
-
     .report-option-btn small {
         font-size: 0.8rem;
+    }
+}
+@media (min-height: 800px) {
+    .modal-container {
+        max-height: 85vh;
+        padding: var(--spacing-xl);
+    }
+    .report-modal-content {
+        padding: 40px;
     }
 }
