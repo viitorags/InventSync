@@ -131,7 +131,6 @@ export default function Sign() {
 						className="signup-form"
 						style={{ marginTop: 12 }}
 					>
-						{/* Upload de Imagem */}
 						<Form.Item name="avatar">
 							<Upload
 								name="avatar"
