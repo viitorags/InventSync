@@ -9,27 +9,27 @@ import Orders from '../views/Orders.jsx';
 import Configurations from '../views/Configurations.jsx'
 
 const routes = [
-	{ path: '/', element: <Dashboard /> },
-	{ path: '/home', element: <Home /> },
-	{ path: '/login', element: <Login /> },
-	{ path: '/register', element: <Sign /> },
-	{ path: '/stock', element: <Stock /> },
-	{ path: '/customer', element: <Customer /> },
-	{ path: '/orders', element: <Orders /> },
-	{ path: '/config', element: <Configurations /> }
+    { path: '/', element: <Dashboard /> },
+    { path: '/home', element: <Home /> },
+    { path: '/login', element: <Login /> },
+    { path: '/register', element: <Sign /> },
+    { path: '/stock', element: <Stock /> },
+    { path: '/customer', element: <Customer /> },
+    { path: '/orders', element: <Orders /> },
+    { path: '/config', element: <Configurations /> }
 ];
 
 export default function Router() {
-	return (
-		<BrowserRouter>
-			<Routes>
-				{routes.map((route) => (
-					<Route
-						path={route.path}
-						element={route.element}
-					/>
-				))}
-			</Routes>
-		</BrowserRouter>
-	);
+    return (
+        <BrowserRouter>
+            <Routes>
+                {routes.map((route) => (
+                    <Route
+                        path={route.path}
+                        element={route.element}
+                    />
+                ))}
+            </Routes>
+        </BrowserRouter>
+    );
 }
