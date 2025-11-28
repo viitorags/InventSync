@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
-use App\Http\Requests\StoreCustomer;
+use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Resources\CustomerResource;
 
 class CustomerController extends Controller
@@ -14,15 +14,15 @@ class CustomerController extends Controller
         return CustomerResource::collection($customers);
     }
 
-    public function store(StoreCustomer $request)
+    public function store(StoreCustomerRequest $request)
     {
-        $customer = Customer::create($request->validate());
+        $customer = Customer::create($request->validated());
         return new CustomerResource($customer);
     }
 
-    public function update(StoreCustomer $request, Customer $customer)
+    public function update(StoreCustomerRequest $request, Customer $customer)
     {
-        $customer->update($request->validate());
+        $customer->update($request->validated());
         return new CustomerResource($customer);
     }
 

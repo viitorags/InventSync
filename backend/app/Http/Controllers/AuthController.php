@@ -8,6 +8,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
@@ -22,7 +23,7 @@ class AuthController extends Controller
         } else {
             $token = auth()->guard('api')->login($user);
             return response()->json([
-                'acess_token' => $token,
+                'access_token' => $token,
                 'token_type' => 'bearer',
             ]);
         }
@@ -30,11 +31,25 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
-        $user = User::create($request->validate());
-        $token = auth()->guard('api')->login($user);
+        $data = $request->validated();
+        $data['user_password'] = Hash::make($data['user_password']);
+
+        $user = User::create($data);
+
+        if ($request->hasFile('avatar')) {
+            $user->user_avatar = $request->file('avatar')->store('avatars', 'public');
+            $user->save();
+        }
+
+        try {
+            $token = auth()->guard('api')->login($user);
+        } catch (JWTException $err) {
+            return response()->json(['error' => 'Could not create token'], 500);
+        }
+
         return response()->json([
             'user' => new UserResource($user),
-            'acess_token' => $token,
+            'access_token' => $token,
             'token_type' => 'bearer',
         ]);
     }
@@ -47,6 +62,14 @@ class AuthController extends Controller
 
     public function me()
     {
-        return response()->json(auth()->guard('api')->user());
+        try {
+            $user = auth()->guard('api')->user();
+            if (!$user) {
+                return response()->json(['error' => 'sem user'], 401);
+            }
+            return response()->json($user);
+        } catch (\Exception $e) {
+            return response()->json(['debug' => $e->getMessage()], 500);
+        }
     }
 }

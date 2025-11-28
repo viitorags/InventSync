@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Http\Requests\StoreOrder;
+use App\Http\Requests\StoreOrderRequest;
 use App\Http\Resources\OrderResource;
 
 class OrdersController extends Controller
@@ -14,15 +14,15 @@ class OrdersController extends Controller
         return OrderResource::collection($orders);
     }
 
-    public function store(StoreOrder $request)
+    public function store(StoreOrderRequest $request)
     {
-        $order = Order::create($request->validate());
+        $order = Order::create($request->validated());
         return new OrderResource($order);
     }
 
-    public function update(StoreOrder $request, Order $order)
+    public function update(StoreOrderRequest $request, Order $order)
     {
-        $order->update($request->validate());
+        $order->update($request->validated());
         return new OrderResource($order);
     }
 

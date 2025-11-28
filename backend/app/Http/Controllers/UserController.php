@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreUser;
+use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use App\Http\Resources\UserResource;
 
@@ -10,20 +10,16 @@ use App\Http\Resources\UserResource;
 
 class UserController extends Controller
 {
-    public function show()
+    public function update(StoreUserRequest $request, User $user)
     {
-        //
-    }
+        $user->update($request->validated());
 
-    public function store(StoreUser $request)
-    {
-        $user = User::create($request->validate());
-        return new UserResource($user);
-    }
+        if ($request->hasFile('avatar')) {
+            $pathAvatar = $request->file('avatar')->store('avatars', 'public');
+            $user->user_avatar = $pathAvatar;
+            $user->save();
+        }
 
-    public function update(StoreUser $request, User $user)
-    {
-        $user->update($request->validate());
         return new UserResource($user);
     }
 
