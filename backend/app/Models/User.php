@@ -2,19 +2,35 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Traits\HasUniqueUuid;
 
-class User extends Model
+class User extends Authenticatable implements JWTSubject
 {
+    use HasUniqueUuid;
+
+    protected $primaryKey = 'user_id';
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password'
+        'user_name',
+        'user_email',
+        'user_password'
     ];
 
     /**
@@ -23,7 +39,7 @@ class User extends Model
      * @var array
      */
     protected $hidden = [
-        'password',
+        'user_password',
         'remember_token',
     ];
 
@@ -35,4 +51,9 @@ class User extends Model
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function getAuthPassword()
+    {
+        return $this->user_password;
+    }
 }
