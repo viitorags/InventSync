@@ -16,6 +16,7 @@ docker-compose.yml
 # Dependências / Composer
 /vendor/
 composer.phar
+/frontend/node_modules
 
 # Configurações de ambiente
 .env
