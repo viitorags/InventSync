@@ -20,10 +20,16 @@ return new class extends Migration
             $table->string('customer_name');
             $table->string('customer_number', 20);
             $table->uuid('customer_id')->nullable();
+            $table->uuid('user_id');
 
             $table->foreign('customer_id')
                 ->references('customer_id')
                 ->on('customers')
+                ->onDelete('cascade');
+
+            $table->foreign('user_id')
+                ->references('user_id')
+                ->on('users')
                 ->onDelete('cascade');
         });
     }
