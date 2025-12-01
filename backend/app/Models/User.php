@@ -11,6 +11,7 @@ class User extends Authenticatable implements JWTSubject
     use HasUniqueUuid;
 
     protected $primaryKey = 'user_id';
+    public $timestamps = false;
 
     public function getJWTIdentifier()
     {
@@ -30,7 +31,8 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'user_name',
         'user_email',
-        'user_password'
+        'user_password',
+        'user_avatar'
     ];
 
     /**

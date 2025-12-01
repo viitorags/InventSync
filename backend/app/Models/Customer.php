@@ -10,4 +10,11 @@ class Customer extends Model
     use HasUniqueUuid;
 
     protected $primaryKey = "customer_id";
+    public $timestamps = false;
+
+    protected $fillable = [
+        'customer_name',
+        'customer_number',
+        'user_id',
+    ];
 }
