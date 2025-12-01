@@ -24,7 +24,6 @@ class StoreCustomerRequest extends FormRequest
         return [
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_number' => ['required', 'string', 'max:20'],
-            'user_id' => ['nullable', 'string', 'exists:users,user_id'],
         ];
     }
 }

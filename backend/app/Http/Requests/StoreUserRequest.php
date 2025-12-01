@@ -25,29 +25,10 @@ class StoreUserRequest extends FormRequest
     public function rules()
     {
         return [
-            'user_name' => ['required', 'string', 'min:3'],
-            'user_email' => ['required', 'email', 'unique:users,user_email'],
-            'user_password' => ['required', 'string', 'min:8'],
+            'user_name' => ['nullable', 'string', 'min:3'],
+            'user_email' => ['nullable', 'email'],
+            'user_password' => ['nullable', 'string', 'min:8'],
             'user_avatar' => ['nullable', 'string'],
         ];
-    }
-
-
-    /**
-     * Configure the validator instance.
-     *
-     * @param  \Illuminate\Validation\Validator  $validator
-     * @return void
-     */
-    public function withValidator($validator)
-    {
-        if ($validator->fails()) {
-            throw new HttpResponseException(response()->json([
-                'msg' => 'Ops! Campo obrigatório não preenchido',
-                'status' => false,
-                'errors' => $validator->errors(),
-                'url' => route('users.createUser')
-            ], 403));
-        }
     }
 }

@@ -28,7 +28,7 @@ class StoreOrderRequest extends FormRequest
             'order_price' => ['required', 'numeric', 'min:0'],
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_number' => ['required', 'string', 'max:20'],
-            'customer_id' => ['nullable', 'string', 'exists:customers, customer_id'],
+            'customer_id' => ['nullable', 'string', 'exists:customers,customer_id'],
             'products' => ['nullable', 'array'],
             'products.*' => ['string', 'exists:products,product_id'],
         ];

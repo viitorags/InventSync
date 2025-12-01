@@ -26,7 +26,6 @@ class StoreProductRequest extends FormRequest
             'product_price' => ['required', 'numeric', 'min:0'],
             'product_amount' => ['required', 'integer', 'min:0'],
             'product_desc' => ['required', 'string', 'max:255'],
-            'user_id' => ['nullable', 'integer', 'exists:users,user_id'],
         ];
     }
 }
