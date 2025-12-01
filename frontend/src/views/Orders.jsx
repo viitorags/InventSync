@@ -3,8 +3,9 @@ import AppTable from "../components/AppTable.jsx";
 import AppForm from "../components/AppForm.jsx";
 import { Layout, Button, Tag, Form, Input, Select, DatePicker, InputNumber, message, Space } from 'antd';
 import { MenuOutlined, PlusOutlined, UserOutlined, PhoneOutlined, DollarOutlined, FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
+import { API_ENDPOINTS, apiGet, apiPost, apiDelete, getAuthHeaders } from '../config/api.js';
 
 const { Header, Content } = Layout;
 const { TextArea } = Input;
@@ -12,42 +13,90 @@ const { TextArea } = Input;
 export default function Orders() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
-    const [tableData, setTableData] = useState([
-        {
-            key: "1",
-            order_id: 456789,
-            client_name: "João Silva",
-            client_number: "(11) 98765-4321",
-            product_name: "Teclado Mecânico, Mouse Gamer",
-            order_details: "Entrega urgente",
-            order_date: "08/11/2025",
-            order_price: "R$ 430,00",
-            order_status: "pendente"
-        },
-        {
-            key: "2",
-            order_id: 567890,
-            client_name: "Maria Santos",
-            client_number: "(21) 99876-5432",
-            product_name: "Monitor 24''",
-            order_details: "Retirada na loja",
-            order_date: "07/11/2025",
-            order_price: "R$ 950,00",
-            order_status: "concluído"
-        },
-        {
-            key: "3",
-            order_id: 678901,
-            client_name: "Pedro Oliveira",
-            client_number: "(31) 97654-3210",
-            product_name: "Mouse Gamer",
-            order_details: "Embalagem para presente",
-            order_date: "06/11/2025",
-            order_price: "R$ 180,00",
-            order_status: "em andamento"
-        },
-    ]);
+    const [tableData, setTableData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [products, setProducts] = useState([]);
+    const [customers, setCustomers] = useState([]);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
+    const [manualEntry, setManualEntry] = useState(false);
     const [form] = Form.useForm();
+    const token = localStorage.getItem('token');
+
+    useEffect(() => {
+        fetchOrders();
+        fetchProducts();
+        fetchCustomers();
+    }, []);
+
+    const fetchOrders = async () => {
+        setLoading(true);
+        try {
+            const response = await apiGet(API_ENDPOINTS.ORDERS, token);
+
+            if (response.ok) {
+                const data = await response.json();
+
+                const orders = data.data || data;
+
+                if (!Array.isArray(orders)) {
+                    console.error('❌ Orders não é um array:', orders);
+                    message.error('Formato de dados inválido');
+                    return;
+                }
+
+                const formattedData = orders.map(order => ({
+                    key: order.order_id,
+                    order_id: order.order_id,
+                    client_name: order.customer_name,
+                    client_number: order.customer_number,
+                    product_name: order.products ? order.products.join(', ') : 'N/A',
+                    order_details: order.order_details || 'Sem detalhes',
+                    order_date: dayjs(order.order_date).format('DD/MM/YYYY'),
+                    order_price: `R$ ${parseFloat(order.order_price).toFixed(2).replace('.', ',')}`,
+                    order_status: order.order_status
+                }));
+
+                setTableData(formattedData);
+            } else {
+                message.error('Erro ao carregar pedidos');
+            }
+        } catch (error) {
+            console.error('Erro ao buscar pedidos:', error);
+            message.error('Erro ao carregar pedidos');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchProducts = async () => {
+        try {
+            const response = await apiGet(API_ENDPOINTS.PRODUCTS, token);
+
+            if (response.ok) {
+                const data = await response.json();
+
+                const products = data.data || data;
+                setProducts(products);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar produtos:', error);
+        }
+    };
+
+    const fetchCustomers = async () => {
+        try {
+            const response = await apiGet(API_ENDPOINTS.CUSTOMERS, token);
+
+            if (response.ok) {
+                const data = await response.json();
+
+                const customers = data.data || data;
+                setCustomers(customers);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar clientes:', error);
+        }
+    };
 
     const columns = [
         {
@@ -98,76 +147,136 @@ export default function Orders() {
         },
     ];
 
-    const data = [
-        {
-            key: "1",
-            order_id: 456789,
-            client_name: "João Silva",
-            client_number: "(11) 98765-4321",
-            product_name: "Teclado Mecânico, Mouse Gamer",
-            order_details: "Entrega urgente",
-            order_date: "08/11/2025",
-            order_price: "R$ 430,00",
-            order_status: "pendente"
-        },
-        {
-            key: "2",
-            order_id: 567890,
-            client_name: "Maria Santos",
-            client_number: "(21) 99876-5432",
-            product_name: "Monitor 24''",
-            order_details: "Retirada na loja",
-            order_date: "07/11/2025",
-            order_price: "R$ 950,00",
-            order_status: "concluído"
-        },
-        {
-            key: "3",
-            order_id: 678901,
-            client_name: "Pedro Oliveira",
-            client_number: "(31) 97654-3210",
-            product_name: "Mouse Gamer",
-            order_details: "Embalagem para presente",
-            order_date: "06/11/2025",
-            order_price: "R$ 180,00",
-            order_status: "em andamento"
-        },
-    ];
+    const handleDelete = async (key) => {
+        try {
+            const response = await apiDelete(API_ENDPOINTS.ORDER_BY_ID(key), token);
 
-    const handleDelete = (key) => {
-        setTableData(tableData.filter(item => item.key !== key));
-        message.success('Pedido removido com sucesso!');
+            if (response.ok) {
+                message.success('Pedido removido com sucesso!');
+                await fetchOrders();
+            } else {
+                const errorData = await response.json();
+                message.error(errorData.message || 'Erro ao remover pedido');
+            }
+        } catch (error) {
+            console.error('Erro ao deletar pedido:', error);
+            message.error('Erro ao remover pedido');
+        }
     };
 
-    const handleAdd = (values) => {
-        const newOrder = {
-            key: Date.now().toString(),
-            order_id: Math.floor(100000 + Math.random() * 900000),
-            client_name: values.client_name,
-            client_number: values.client_number,
-            product_name: values.product_name,
-            order_details: values.order_details,
-            order_date: values.order_date.format('DD/MM/YYYY'),
-            order_price: `R$ ${values.order_price.toFixed(2).replace('.', ',')}`,
-            order_status: values.order_status
-        };
-        setTableData([...tableData, newOrder]);
-        message.success('Pedido adicionado com sucesso!');
-        form.resetFields();
-        setModalOpen(false);
+    const handleUpdate = async (key, values) => {
+        try {
+            const payload = {
+                customer_name: values.client_name,
+                customer_number: values.client_number,
+                order_date: values.order_date,
+                order_status: values.order_status,
+                order_price: values.order_price,
+                products: values.products || []
+            };
+
+            const response = await fetch(`${API_ENDPOINTS.ORDER_BY_ID(key)}`, {
+                method: 'PUT',
+                headers: {
+                    ...getAuthHeaders(token),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.ok) {
+                message.success('Pedido atualizado com sucesso!');
+                await fetchOrders();
+            } else {
+                const errorData = await response.json();
+                message.error(errorData.message || 'Erro ao atualizar pedido');
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar pedido:', error);
+            message.error('Erro ao atualizar pedido');
+        }
+    };
+
+    const handleCustomerSelect = (value) => {
+        if (value === 'manual') {
+            setManualEntry(true);
+            setSelectedCustomer(null);
+            form.setFieldsValue({
+                client_name: '',
+                client_number: ''
+            });
+        } else {
+            setManualEntry(false);
+            const customer = customers.find(c => c.customer_id === value);
+            setSelectedCustomer(customer);
+            if (customer) {
+                form.setFieldsValue({
+                    client_name: customer.customer_name,
+                    client_number: customer.customer_number
+                });
+            }
+        }
+    };
+
+    const handleProductsChange = (selectedProductIds) => {
+        const total = selectedProductIds.reduce((sum, productId) => {
+            const product = products.find(p => p.product_id === productId);
+            return sum + (product ? parseFloat(product.product_price) : 0);
+        }, 0);
+
+        form.setFieldsValue({
+            order_price: total
+        });
+    };
+
+    const handleAdd = async (values) => {
+        setLoading(true);
+        try {
+            const response = await apiPost(
+                API_ENDPOINTS.ORDERS,
+                {
+                    order_details: values.order_details || '',
+                    order_date: values.order_date.format('YYYY-MM-DD'),
+                    order_status: values.order_status,
+                    order_price: values.order_price,
+                    customer_name: values.client_name,
+                    customer_number: values.client_number,
+                    customer_id: selectedCustomer?.customer_id || null,
+                    products: values.product_ids || [],
+                },
+                token
+            );
+
+            if (response.ok) {
+                message.success('Pedido adicionado com sucesso!');
+                form.resetFields();
+                setModalOpen(false);
+                setSelectedCustomer(null);
+                setManualEntry(false);
+                await fetchOrders();
+            } else {
+                const errorData = await response.json();
+                console.error('Erro do servidor:', errorData);
+                message.error(errorData.message || 'Erro ao adicionar pedido');
+            }
+        } catch (error) {
+            console.error('Erro ao adicionar pedido:', error);
+            message.error('Erro ao adicionar pedido');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const downloadReport = async (format) => {
         try {
             message.loading({ content: `Gerando relatório de vendas em ${format.toUpperCase()}...`, key: 'report' });
 
-            const url = `http://localhost:8000/api/reports/${format}/sales`;
+            const headers = getAuthHeaders(token);
+            delete headers['Content-Type'];
 
-            const response = await fetch(url, {
+            const response = await fetch(API_ENDPOINTS.REPORT_ORDERS(format), {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
             });
 
             if (!response.ok) {
@@ -179,7 +288,7 @@ export default function Orders() {
             const link = document.createElement('a');
             link.href = downloadUrl;
 
-            const fileName = `Relatorio_Vendas_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+            const fileName = `Relatorio_Vendas_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'csv' : 'pdf'}`;
             link.download = fileName;
 
             document.body.appendChild(link);
@@ -261,7 +370,7 @@ export default function Orders() {
                                 Adicionar Pedido
                             </Button>
                         </div>
-                        <AppTable columns={columns} data={tableData} onDelete={handleDelete} scroll={{ x: 1200 }} />
+                        <AppTable columns={columns} data={tableData} onDelete={handleDelete} onUpdate={handleUpdate} scroll={{ x: 1200 }} />
                     </div>
 
                     <AppForm
@@ -269,12 +378,38 @@ export default function Orders() {
                         onCancel={() => {
                             setModalOpen(false);
                             form.resetFields();
+                            setSelectedCustomer(null);
+                            setManualEntry(false);
                         }}
                         onFinish={handleAdd}
                         title="Adicionar Novo Pedido"
                         form={form}
                         width={600}
                     >
+                        <Form.Item
+                            name="customer_select"
+                            label={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>Selecionar Cliente</span>}
+                        >
+                            <Select
+                                placeholder="Selecione um cliente ou insira manualmente"
+                                onChange={handleCustomerSelect}
+                                showSearch
+                                filterOption={(input, option) =>
+                                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                                }
+                                options={[
+                                    {
+                                        label: '➕ Inserir manualmente',
+                                        value: 'manual'
+                                    },
+                                    ...customers.map(customer => ({
+                                        label: `${customer.customer_name} - ${customer.customer_number}`,
+                                        value: customer.customer_id
+                                    }))
+                                ]}
+                            />
+                        </Form.Item>
+
                         <Form.Item
                             name="client_name"
                             label={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>Nome do Cliente</span>}
@@ -283,6 +418,7 @@ export default function Orders() {
                             <Input
                                 prefix={<UserOutlined />}
                                 placeholder="Ex: João Silva"
+                                disabled={!manualEntry && selectedCustomer !== null}
                             />
                         </Form.Item>
 
@@ -297,15 +433,28 @@ export default function Orders() {
                             <Input
                                 prefix={<PhoneOutlined />}
                                 placeholder="(11) 98765-4321"
+                                disabled={!manualEntry && selectedCustomer !== null}
                             />
                         </Form.Item>
 
                         <Form.Item
-                            name="product_name"
+                            name="product_ids"
                             label={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>Produtos</span>}
-                            rules={[{ required: true, message: 'Por favor, insira os produtos!' }]}
+                            rules={[{ required: true, message: 'Por favor, selecione os produtos!' }]}
                         >
-                            <Input placeholder="Ex: Teclado Mecânico, Mouse Gamer" />
+                            <Select
+                                mode="multiple"
+                                placeholder="Selecione os produtos"
+                                showSearch
+                                onChange={handleProductsChange}
+                                filterOption={(input, option) =>
+                                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                                }
+                                options={products.map(product => ({
+                                    label: `${product.product_name} - R$ ${parseFloat(product.product_price).toFixed(2)}`,
+                                    value: product.product_id
+                                }))}
+                            />
                         </Form.Item>
 
                         <Form.Item

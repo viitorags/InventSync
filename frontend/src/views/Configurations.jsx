@@ -6,8 +6,6 @@ import {
     Input,
     Avatar,
     Upload,
-    Switch,
-    Divider,
     Card,
     Row,
     Col,
@@ -21,11 +19,9 @@ import {
     LockOutlined,
     MailOutlined,
     CameraOutlined,
-    BellOutlined,
-    MoonOutlined,
-    GlobalOutlined
 } from '@ant-design/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { API_ENDPOINTS, apiGet, apiPut } from '../config/api.js';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -34,35 +30,122 @@ export default function Configurations() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
+    const [profileForm] = Form.useForm();
+    const [passwordForm] = Form.useForm();
 
-    const [userSettings, setUserSettings] = useState({
-        user_name: 'Vitor',
-        user_email: 'vitor@example.com',
-        user_img: 'https://i.pravatar.cc/100',
-        notifications: true,
-        darkMode: true,
-        language: 'pt-BR'
-    });
+    useEffect(() => {
+        async function loadUser() {
+            const token = localStorage.getItem("token");
+
+            try {
+                const response = await apiGet(API_ENDPOINTS.ME, token);
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    profileForm.setFieldsValue({
+                        user_name: data.data.user_name,
+                        user_email: data.data.user_email,
+                    });
+
+                    setUserSettings(prev => ({
+                        ...prev,
+                        user_avatar: data.data.user_avatar
+                    }));
+                } else {
+                    message.error('Erro ao carregar dados do usuário');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar usuário:', error);
+                message.error('Erro ao carregar dados do usuário');
+            }
+        }
+
+        loadUser();
+    }, [profileForm]);
 
     const handleProfileUpdate = async (values) => {
         setLoading(true);
+        const token = localStorage.getItem("token");
+
         try {
-            console.log('Atualizando perfil:', values);
-            message.success('Perfil atualizado com sucesso!');
+            const updateData = {
+                user_name: values.user_name,
+                user_email: values.user_email,
+            };
+
+            if (userSettings.user_avatar && userSettings.user_avatar.startsWith('data:image')) {
+                updateData.user_avatar = userSettings.user_avatar;
+            }
+
+            const UpdateResponse = await apiPut(API_ENDPOINTS.UPDATE_USER, updateData, token);
+
+            if (UpdateResponse.ok) {
+                message.success('Perfil atualizado com sucesso!');
+
+                const userResponse = await apiGet(API_ENDPOINTS.ME, token);
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    const data = userData.data || userData;
+
+                    setUserSettings(prev => ({
+                        ...prev,
+                        user_avatar: data.user_avatar
+                    }));
+
+                    profileForm.setFieldsValue({
+                        user_name: data.user_name,
+                        user_email: data.user_email,
+                    });
+                }
+            } else {
+                const errorData = await UpdateResponse.json();
+                message.error(errorData.message || 'Erro ao atualizar perfil');
+            }
         } catch (error) {
+            console.error('Erro ao atualizar perfil:', error);
             message.error('Erro ao atualizar perfil');
         } finally {
             setLoading(false);
         }
     };
 
+    const [userSettings, setUserSettings] = useState({
+        user_avatar: null,
+    });
+
     const handlePasswordChange = async (values) => {
         setLoading(true);
+        const token = localStorage.getItem("token");
+
         try {
-            console.log('Alterando senha');
-            message.success('Senha alterada com sucesso!');
-            form.resetFields(['current_password', 'new_password', 'confirm_password']);
+            const IdResponse = await apiGet(API_ENDPOINTS.ME, token);
+
+            if (!IdResponse.ok) {
+                throw new Error('Erro ao obter dados do usuário');
+            }
+
+            const IdData = await IdResponse.json();
+            const userId = IdData.user_id;
+
+            const UpdateResponse = await apiPut(
+                API_ENDPOINTS.UPDATE_USER,
+                {
+                    user_id: userId,
+                    user_password: values.new_password,
+                },
+                token
+            );
+
+            if (UpdateResponse.ok) {
+                message.success('Senha alterada com sucesso!');
+                passwordForm.resetFields();
+            } else {
+                const errorData = await UpdateResponse.json();
+                message.error(errorData.message || 'Erro ao alterar senha');
+            }
         } catch (error) {
+            console.error('Erro ao alterar senha:', error);
             message.error('Erro ao alterar senha');
         } finally {
             setLoading(false);
@@ -70,8 +153,17 @@ export default function Configurations() {
     };
 
     const handleAvatarChange = (info) => {
-        if (info.file.status === 'done') {
-            message.success('Avatar atualizado com sucesso!');
+        const file = info.file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setUserSettings(prev => ({
+                ...prev,
+                user_avatar: e.target.result
+            }));
+            message.success('Avatar carregado! Clique em "Salvar Perfil" para confirmar.');
+        };
+        if (file) {
+            reader.readAsDataURL(file.originFileObj || file);
         }
     };
 
@@ -124,9 +216,11 @@ export default function Configurations() {
                                     borderRadius: 12,
                                     border: '1px solid #2a2a2a',
                                 }}
-                                headStyle={{
-                                    borderBottom: '1px solid #2a2a2a',
-                                    color: 'rgba(255, 255, 255, 0.95)'
+                                styles={{
+                                    header: {
+                                        borderBottom: '1px solid #2a2a2a',
+                                        color: 'rgba(255, 255, 255, 0.95)'
+                                    }
                                 }}
                             >
                                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -140,8 +234,8 @@ export default function Configurations() {
                                             <div style={{ cursor: 'pointer', position: 'relative', display: 'inline-block' }}>
                                                 <Avatar
                                                     size={100}
-                                                    src={userSettings.user_img}
-                                                    icon={<UserOutlined />}
+                                                    src={userSettings.user_avatar || null}
+                                                    icon={!userSettings.user_avatar ? <UserOutlined /> : null}
                                                 />
                                                 <Button
                                                     type="primary"
@@ -162,11 +256,8 @@ export default function Configurations() {
                                     </div>
 
                                     <Form
+                                        form={profileForm}
                                         layout="vertical"
-                                        initialValues={{
-                                            user_name: userSettings.user_name,
-                                            user_email: userSettings.user_email,
-                                        }}
                                         onFinish={handleProfileUpdate}
                                     >
                                         <Form.Item
@@ -211,13 +302,15 @@ export default function Configurations() {
                                     borderRadius: 12,
                                     border: '1px solid #2a2a2a',
                                 }}
-                                headStyle={{
-                                    borderBottom: '1px solid #2a2a2a',
-                                    color: 'rgba(255, 255, 255, 0.95)'
+                                styles={{
+                                    header: {
+                                        borderBottom: '1px solid #2a2a2a',
+                                        color: 'rgba(255, 255, 255, 0.95)'
+                                    }
                                 }}
                             >
                                 <Form
-                                    form={form}
+                                    form={passwordForm}
                                     layout="vertical"
                                     onFinish={handlePasswordChange}
                                 >
@@ -267,44 +360,6 @@ export default function Configurations() {
                                 </Form>
                             </Card>
                         </Col>
-
-                        {/* <Col xs={24}> */}
-                        {/* 	<Card */}
-                        {/* 		title={ */}
-                        {/* 			<Space> */}
-                        {/* 				<GlobalOutlined /> */}
-                        {/* 				<span>Preferências</span> */}
-                        {/* 			</Space> */}
-                        {/* 		} */}
-                        {/* 		style={{ */}
-                        {/* 			background: '#1f1f1f', */}
-                        {/* 			borderRadius: 12, */}
-                        {/* 			border: '1px solid #2a2a2a', */}
-                        {/* 		}} */}
-                        {/* 		headStyle={{ */}
-                        {/* 			borderBottom: '1px solid #2a2a2a', */}
-                        {/* 			color: 'rgba(255, 255, 255, 0.95)' */}
-                        {/* 		}} */}
-                        {/* 	> */}
-                        {/* 		<Space direction="vertical" size="large" style={{ width: '100%' }}> */}
-                        {/**/}
-                        {/* 			<Divider style={{ borderColor: '#2a2a2a', margin: '12px 0' }} /> */}
-                        {/**/}
-                        {/* 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}> */}
-                        {/* 				<Space> */}
-                        {/* 					<GlobalOutlined style={{ fontSize: '18px' }} /> */}
-                        {/* 					<div> */}
-                        {/* 						<div style={{ color: 'rgba(255, 255, 255, 0.95)' }}>Idioma</div> */}
-                        {/* 						<Text type="secondary" style={{ fontSize: '12px' }}> */}
-                        {/* 							Português (Brasil) */}
-                        {/* 						</Text> */}
-                        {/* 					</div> */}
-                        {/* 				</Space> */}
-                        {/* 				<Button type="default">Alterar</Button> */}
-                        {/* 			</div> */}
-                        {/* 		</Space> */}
-                        {/* 	</Card> */}
-                        {/* </Col> */}
                     </Row>
                 </Content>
             </Layout>

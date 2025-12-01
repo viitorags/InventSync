@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Space } from 'antd';
+import { Form, Input, Button, Card, Typography, Checkbox, message, Space } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api.js';
 
 const { Title, Text } = Typography;
 
@@ -12,14 +13,29 @@ export default function Login() {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            console.log('Login:', values);
+            const response = await fetch(API_ENDPOINTS.LOGIN, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_email: values.email,
+                    user_password: values.password,
+                    remember: values.remember
+                }),
+            });
 
-            setTimeout(() => {
+            const data = await response.json();
+
+            if (response.ok) {
                 message.success('Login realizado com sucesso!');
-                localStorage.setItem('user', JSON.stringify({ email: values.email }));
-                navigate('/');
-            }, 1000);
-
+                localStorage.setItem('token', data.access_token);
+                setTimeout(() => {
+                    navigate('/');
+                }, 1000);
+            } else {
+                message.error(data.message || 'Erro ao fazer login. Verifique suas credenciais.');
+            }
         } catch (error) {
             message.error('Erro ao fazer login. Verifique suas credenciais.');
             console.error('Erro:', error);
@@ -109,12 +125,17 @@ export default function Login() {
                             />
                         </Form.Item>
 
-                        <Form.Item style={{ marginBottom: 12 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
-                                <Text style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
-                                    <input type="checkbox" style={{ marginRight: 6 }} />
+                        <Form.Item
+                            name="remember"
+                            valuePropName="checked"
+                            initialValue={false}
+                            style={{ marginBottom: 12 }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Checkbox style={{ color: 'rgba(255,255,255,0.85)' }}>
                                     Lembrar-me
-                                </Text>
+                                </Checkbox>
+
                                 <Link to="/forgot-password" style={{ color: '#9146ff' }}>
                                     Esqueceu a senha?
                                 </Link>

@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from '../views/Home.jsx';
+
+import PrivateRoute from '../components/PrivateRoute.jsx';
+import PublicRoute from '../components/PublicRoute.jsx';
 import Login from '../views/Login.jsx';
 import Sign from '../views/Sign.jsx';
 import Dashboard from '../views/Dashboard.jsx';
@@ -10,9 +12,6 @@ import Configurations from '../views/Configurations.jsx'
 
 const routes = [
     { path: '/', element: <Dashboard /> },
-    { path: '/home', element: <Home /> },
-    { path: '/login', element: <Login /> },
-    { path: '/register', element: <Sign /> },
     { path: '/stock', element: <Stock /> },
     { path: '/customer', element: <Customer /> },
     { path: '/orders', element: <Orders /> },
@@ -23,10 +22,16 @@ export default function Router() {
     return (
         <BrowserRouter>
             <Routes>
+                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                <Route path="/register" element={<PublicRoute><Sign /></PublicRoute>} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Sign />} />
                 {routes.map((route) => (
                     <Route
                         path={route.path}
-                        element={route.element}
+                        element={
+                            <PrivateRoute>{route.element}</PrivateRoute>
+                        }
                     />
                 ))}
             </Routes>

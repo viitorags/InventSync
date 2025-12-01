@@ -3,33 +3,56 @@ import AppTable from "../components/AppTable.jsx";
 import AppForm from "../components/AppForm.jsx";
 import { Layout, Button, Form, Input, message, Space } from 'antd';
 import { MenuOutlined, PlusOutlined, UserOutlined, PhoneOutlined, FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { API_ENDPOINTS, apiGet, apiPost, apiDelete, getAuthHeaders } from '../config/api.js';
+
 const { Header, Content } = Layout;
 
 export default function Customer() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
-    const [tableData, setTableData] = useState([
-        {
-            key: "1",
-            client_id: 123456,
-            client_name: "João Silva",
-            client_number: "(11) 98765-4321"
-        },
-        {
-            key: "2",
-            client_id: 234567,
-            client_name: "Maria Santos",
-            client_number: "(21) 99876-5432"
-        },
-        {
-            key: "3",
-            client_id: 345678,
-            client_name: "Pedro Oliveira",
-            client_number: "(31) 97654-3210"
-        },
-    ]);
+    const [tableData, setTableData] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
+    const token = localStorage.getItem('token');
+
+    useEffect(() => {
+        fetchCustomers();
+    }, []);
+
+    const fetchCustomers = async () => {
+        setLoading(true);
+        try {
+            const response = await apiGet(API_ENDPOINTS.CUSTOMERS, token);
+
+            if (response.ok) {
+                const data = await response.json();
+
+                const customers = data.data || data;
+
+                if (!Array.isArray(customers)) {
+                    message.error('Formato de dados inválido');
+                    return;
+                }
+
+                const formattedData = customers.map(customer => ({
+                    key: customer.customer_id,
+                    client_id: customer.customer_id,
+                    client_name: customer.customer_name,
+                    client_number: customer.customer_number
+                }));
+
+                setTableData(formattedData);
+            } else {
+                message.error('Erro ao carregar clientes');
+            }
+        } catch (error) {
+            console.error('Erro ao buscar clientes:', error);
+            message.error('Erro ao carregar clientes');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const columns = [
         {
@@ -46,35 +69,87 @@ export default function Customer() {
         },
     ];
 
-    const handleDelete = (key) => {
-        setTableData(tableData.filter(item => item.key !== key));
-        message.success('Cliente removido com sucesso!');
+    const handleDelete = async (key) => {
+        try {
+            const response = await apiDelete(API_ENDPOINTS.CUSTOMER_BY_ID(key), token);
+
+            if (response.ok) {
+                message.success('Cliente removido com sucesso!');
+                await fetchCustomers();
+            } else {
+                const errorData = await response.json();
+                message.error(errorData.message || 'Erro ao remover cliente');
+            }
+        } catch (error) {
+            console.error('Erro ao deletar cliente:', error);
+            message.error('Erro ao remover cliente');
+        }
     };
 
-    const handleAdd = (values) => {
-        const newClient = {
-            key: Date.now().toString(),
-            client_id: Math.floor(100000 + Math.random() * 900000),
-            client_name: values.client_name,
-            client_number: values.client_number
-        };
-        setTableData([...tableData, newClient]);
-        message.success('Cliente adicionado com sucesso!');
-        form.resetFields();
-        setModalOpen(false);
+    const handleUpdate = async (key, values) => {
+        try {
+            const response = await fetch(API_ENDPOINTS.CUSTOMER_BY_ID(key), {
+                method: 'PUT',
+                headers: getAuthHeaders(token),
+                body: JSON.stringify({
+                    customer_name: values.client_name,
+                    customer_number: values.client_number,
+                }),
+            });
+
+            if (response.ok) {
+                message.success('Cliente atualizado com sucesso!');
+                await fetchCustomers();
+            } else {
+                const errorData = await response.json();
+                message.error(errorData.message || 'Erro ao atualizar cliente');
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar cliente:', error);
+            message.error('Erro ao atualizar cliente');
+        }
+    };
+
+    const handleAdd = async (values) => {
+        setLoading(true);
+        try {
+            const response = await apiPost(
+                API_ENDPOINTS.CUSTOMERS,
+                {
+                    customer_name: values.client_name,
+                    customer_number: values.client_number,
+                },
+                token
+            );
+
+            if (response.ok) {
+                message.success('Cliente adicionado com sucesso!');
+                form.resetFields();
+                setModalOpen(false);
+                await fetchCustomers();
+            } else {
+                const errorData = await response.json();
+                console.error('Erro do servidor:', errorData);
+                message.error(errorData.message || 'Erro ao adicionar cliente');
+            }
+        } catch (error) {
+            console.error('Erro ao adicionar cliente:', error);
+            message.error('Erro ao adicionar cliente');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const downloadReport = async (format) => {
         try {
             message.loading({ content: `Gerando relatório de clientes em ${format.toUpperCase()}...`, key: 'report' });
 
-            const url = `http://localhost:8000/api/reports/${format}/clients`;
+            const headers = getAuthHeaders(token);
+            delete headers['Content-Type'];
 
-            const response = await fetch(url, {
+            const response = await fetch(API_ENDPOINTS.REPORT_CUSTOMERS(format), {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
             });
 
             if (!response.ok) {
@@ -86,7 +161,7 @@ export default function Customer() {
             const link = document.createElement('a');
             link.href = downloadUrl;
 
-            const fileName = `Relatorio_Clientes_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+            const fileName = `Relatorio_Clientes_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'csv' : 'pdf'}`;
             link.download = fileName;
 
             document.body.appendChild(link);
@@ -168,7 +243,7 @@ export default function Customer() {
                                 Adicionar Cliente
                             </Button>
                         </div>
-                        <AppTable columns={columns} data={tableData} onDelete={handleDelete} scroll={{ x: 768 }} />
+                        <AppTable columns={columns} data={tableData} onDelete={handleDelete} onUpdate={handleUpdate} scroll={{ x: 768 }} />
                     </div>
 
                     <AppForm

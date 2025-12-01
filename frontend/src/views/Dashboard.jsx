@@ -12,7 +12,8 @@ import {
     Typography,
     Space,
     Avatar,
-    List
+    List,
+    Spin
 } from 'antd';
 import {
     MenuOutlined,
@@ -24,59 +25,102 @@ import {
     ClockCircleOutlined,
     CheckCircleOutlined
 } from '@ant-design/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { API_ENDPOINTS, apiGet } from '../config/api.js';
+import dayjs from 'dayjs';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 export default function Dashboard() {
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({
+        totalPedidos: 0,
+        totalClientes: 0,
+        receitaTotal: 0,
+        produtosEstoque: 0,
+    });
+    const [pedidosRecentes, setPedidosRecentes] = useState([]);
+    const [produtosMaisVendidos, setProdutosMaisVendidos] = useState([]);
+    const token = localStorage.getItem('token');
 
-    const stats = {
-        totalPedidos: 156,
-        pedidosCrescimento: 12.5,
-        totalClientes: 89,
-        clientesCrescimento: 8.3,
-        receitaTotal: 45780.50,
-        receitaCrescimento: 15.2,
-        produtosEstoque: 324,
-        produtosBaixoEstoque: 12
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
+
+    const fetchDashboardData = async () => {
+        setLoading(true);
+        try {
+            const ordersResponse = await apiGet(API_ENDPOINTS.ORDERS, token);
+            const ordersData = ordersResponse.ok ? await ordersResponse.json() : { data: [] };
+
+            const customersResponse = await apiGet(API_ENDPOINTS.CUSTOMERS, token);
+            const customersData = customersResponse.ok ? await customersResponse.json() : { data: [] };
+
+            const productsResponse = await apiGet(API_ENDPOINTS.PRODUCTS, token);
+            const productsData = productsResponse.ok ? await productsResponse.json() : { data: [] };
+
+            const orders = ordersData.data || ordersData || [];
+            const customers = customersData.data || customersData || [];
+            const products = productsData.data || productsData || [];
+
+            const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.order_price || 0), 0);
+
+            setStats({
+                totalPedidos: orders.length,
+                totalClientes: customers.length,
+                receitaTotal: totalRevenue,
+                produtosEstoque: products.length,
+            });
+
+            const recentOrders = orders.slice(0, 5).map(order => ({
+                key: order.order_id,
+                client_name: order.customer_name,
+                product: order.products ? order.products.join(', ') : 'N/A',
+                value: `R$ ${parseFloat(order.order_price).toFixed(2).replace('.', ',')}`,
+                status: order.order_status,
+                date: dayjs(order.order_date).format('DD/MM/YYYY')
+            }));
+
+            setPedidosRecentes(recentOrders);
+
+            const productCount = {};
+
+            orders.forEach(order => {
+                if (order.product_ids && Array.isArray(order.product_ids)) {
+                    order.product_ids.forEach(productId => {
+                        productCount[productId] = (productCount[productId] || 0) + 1;
+                    });
+                }
+            });
+
+            const topProducts = Object.entries(productCount)
+                .map(([productId, count]) => {
+                    const product = products.find(p => p.product_id === productId);
+                    return {
+                        name: product?.product_name || 'Produto desconhecido',
+                        vendas: count,
+                        percentual: 0
+                    };
+                })
+                .sort((a, b) => b.vendas - a.vendas)
+                .slice(0, 5);
+
+            if (topProducts.length > 0) {
+                const maxVendas = topProducts[0].vendas;
+                topProducts.forEach(product => {
+                    product.percentual = Math.round((product.vendas / maxVendas) * 100);
+                });
+            }
+
+            setProdutosMaisVendidos(topProducts);
+        } catch (error) {
+            console.error('Erro ao buscar dados do dashboard:', error);
+        } finally {
+            setLoading(false);
+        }
     };
-
-    const pedidosRecentes = [
-        {
-            key: '1',
-            client_name: 'João Silva',
-            product: 'Teclado Mecânico',
-            value: 'R$ 250,00',
-            status: 'pendente',
-            date: 'Hoje, 14:30'
-        },
-        {
-            key: '2',
-            client_name: 'Maria Santos',
-            product: 'Mouse Gamer',
-            value: 'R$ 180,00',
-            status: 'concluído',
-            date: 'Hoje, 12:15'
-        },
-        {
-            key: '3',
-            client_name: 'Pedro Costa',
-            product: 'Monitor 24"',
-            value: 'R$ 950,00',
-            status: 'em andamento',
-            date: 'Ontem, 16:45'
-        },
-    ];
-
-    const produtosMaisVendidos = [
-        { name: 'Teclado Mecânico', vendas: 45, percentual: 85 },
-        { name: 'Mouse Gamer', vendas: 38, percentual: 72 },
-        { name: 'Monitor 24"', vendas: 32, percentual: 60 },
-        { name: 'Headset', vendas: 28, percentual: 53 },
-        { name: 'Webcam HD', vendas: 21, percentual: 40 },
-    ];
 
     const columns = [
         {
@@ -151,223 +195,138 @@ export default function Dashboard() {
                     <h2 style={{ marginLeft: 10, color: 'rgba(255, 255, 255, 0.95)' }}>Dashboard</h2>
                 </Header>
                 <Content style={{ margin: '24px 16px 0' }}>
-                    <Row gutter={[16, 16]}>
-                        <Col xs={24} sm={12} lg={6}>
-                            <Card className="stat-card" bordered={false}>
-                                <Statistic
-                                    title={<span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>Total de Pedidos</span>}
-                                    value={stats.totalPedidos}
-                                    prefix={<ShoppingCartOutlined style={{ color: '#9146ff' }} />}
-                                    suffix={
-                                        <span style={{ fontSize: '14px', color: '#52c41a' }}>
-                                            <RiseOutlined /> {stats.pedidosCrescimento}%
-                                        </span>
-                                    }
-                                    valueStyle={{ color: 'rgba(255, 255, 255, 0.95)' }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} lg={6}>
-                            <Card className="stat-card" bordered={false}>
-                                <Statistic
-                                    title={<span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>Total de Clientes</span>}
-                                    value={stats.totalClientes}
-                                    prefix={<UserOutlined style={{ color: '#52c41a' }} />}
-                                    suffix={
-                                        <span style={{ fontSize: '14px', color: '#52c41a' }}>
-                                            <RiseOutlined /> {stats.clientesCrescimento}%
-                                        </span>
-                                    }
-                                    valueStyle={{ color: 'rgba(255, 255, 255, 0.95)' }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} lg={6}>
-                            <Card className="stat-card" bordered={false}>
-                                <Statistic
-                                    title={<span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>Receita Total</span>}
-                                    value={stats.receitaTotal}
-                                    precision={2}
-                                    prefix={<DollarOutlined style={{ color: '#faad14' }} />}
-                                    suffix={
-                                        <span style={{ fontSize: '14px', color: '#52c41a' }}>
-                                            <RiseOutlined /> {stats.receitaCrescimento}%
-                                        </span>
-                                    }
-                                    valueStyle={{ color: 'rgba(255, 255, 255, 0.95)' }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} lg={6}>
-                            <Card className="stat-card" bordered={false}>
-                                <Statistic
-                                    title={<span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>Produtos em Estoque</span>}
-                                    value={stats.produtosEstoque}
-                                    prefix={<ShoppingCartOutlined style={{ color: '#722ed1' }} />}
-                                    suffix={
-                                        <span style={{ fontSize: '12px', color: '#ff4d4f' }}>
-                                            {stats.produtosBaixoEstoque} baixos
-                                        </span>
-                                    }
-                                    valueStyle={{ color: 'rgba(255, 255, 255, 0.95)' }}
-                                />
-                            </Card>
-                        </Col>
-                    </Row>
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '50px' }}>
+                            <Spin size="large" />
+                        </div>
+                    ) : (
+                        <>
+                            <Row gutter={[16, 16]}>
+                                <Col xs={24} sm={12} lg={6}>
+                                    <Card className="stat-card" variant={false}>
+                                        <Statistic
+                                            title={<span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>Total de Pedidos</span>}
+                                            value={stats.totalPedidos}
+                                            prefix={<ShoppingCartOutlined style={{ color: '#9146ff' }} />}
+                                            valueStyle={{ color: 'rgba(255, 255, 255, 0.95)' }}
+                                        />
+                                    </Card>
+                                </Col>
+                                <Col xs={24} sm={12} lg={6}>
+                                    <Card className="stat-card" variant={false}>
+                                        <Statistic
+                                            title={<span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>Total de Clientes</span>}
+                                            value={stats.totalClientes}
+                                            prefix={<UserOutlined style={{ color: '#52c41a' }} />}
+                                            valueStyle={{ color: 'rgba(255, 255, 255, 0.95)' }}
+                                        />
+                                    </Card>
+                                </Col>
+                                <Col xs={24} sm={12} lg={6}>
+                                    <Card className="stat-card" variant={false}>
+                                        <Statistic
+                                            title={<span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>Receita Total</span>}
+                                            value={stats.receitaTotal}
+                                            precision={2}
+                                            prefix={<DollarOutlined style={{ color: '#faad14' }} />}
+                                            valueStyle={{ color: 'rgba(255, 255, 255, 0.95)' }}
+                                        />
+                                    </Card>
+                                </Col>
+                                <Col xs={24} sm={12} lg={6}>
+                                    <Card className="stat-card" variant={false}>
+                                        <Statistic
+                                            title={<span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>Produtos em Estoque</span>}
+                                            value={stats.produtosEstoque}
+                                            prefix={<ShoppingCartOutlined style={{ color: '#722ed1' }} />}
+                                            valueStyle={{ color: 'rgba(255, 255, 255, 0.95)' }}
+                                        />
+                                    </Card>
+                                </Col>
+                            </Row>
 
-                    <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-                        <Col xs={24} lg={14}>
-                            <Card
-                                title={
-                                    <Space>
-                                        <ClockCircleOutlined />
-                                        <span>Pedidos Recentes</span>
-                                    </Space>
-                                }
-                                style={{
-                                    background: '#1f1f1f',
-                                    borderRadius: 12,
-                                    border: '1px solid #2a2a2a',
-                                }}
-                                headStyle={{
-                                    borderBottom: '1px solid #2a2a2a',
-                                    color: 'rgba(255, 255, 255, 0.95)'
-                                }}
-                            >
-                                <Table
-                                    columns={columns}
-                                    dataSource={pedidosRecentes}
-                                    pagination={false}
-                                    size="small"
-                                    scroll={{ x: 768 }}
-                                />
-                            </Card>
-                        </Col>
+                            <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+                                <Col xs={24} lg={14}>
+                                    <Card
+                                        title={
+                                            <Space>
+                                                <ClockCircleOutlined />
+                                                <span>Pedidos Recentes</span>
+                                            </Space>
+                                        }
+                                        style={{
+                                            background: '#1f1f1f',
+                                            borderRadius: 12,
+                                            border: '1px solid #2a2a2a',
+                                        }}
+                                        styles={{
+                                            header: {
+                                                borderBottom: '1px solid #2a2a2a',
+                                                color: 'rgba(255, 255, 255, 0.95)'
+                                            }
+                                        }}
+                                    >
+                                        <Table
+                                            columns={columns}
+                                            dataSource={pedidosRecentes}
+                                            pagination={false}
+                                            size="small"
+                                            scroll={{ x: 768 }}
+                                        />
+                                    </Card>
+                                </Col>
 
-                        <Col xs={24} lg={10}>
-                            <Card
-                                title={
-                                    <Space>
-                                        <RiseOutlined />
-                                        <span>Produtos Mais Vendidos</span>
-                                    </Space>
-                                }
-                                style={{
-                                    background: '#1f1f1f',
-                                    borderRadius: 12,
-                                    border: '1px solid #2a2a2a',
-                                }}
-                                headStyle={{
-                                    borderBottom: '1px solid #2a2a2a',
-                                    color: 'rgba(255, 255, 255, 0.95)'
-                                }}
-                            >
-                                <List
-                                    dataSource={produtosMaisVendidos}
-                                    renderItem={(item) => (
-                                        <List.Item style={{ border: 'none', padding: '12px 0' }}>
-                                            <div style={{ width: '100%' }}>
-                                                <div style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    marginBottom: 8,
-                                                    color: 'rgba(255, 255, 255, 0.95)'
-                                                }}>
-                                                    <span>{item.name}</span>
-                                                    <span style={{ color: '#9146ff' }}>{item.vendas} vendas</span>
-                                                </div>
-                                                <Progress
-                                                    percent={item.percentual}
-                                                    showInfo={false}
-                                                    strokeColor={{
-                                                        '0%': '#9146ff',
-                                                        '100%': '#52c41a',
-                                                    }}
-                                                />
-                                            </div>
-                                        </List.Item>
-                                    )}
-                                />
-                            </Card>
-                        </Col>
-                    </Row>
-
-                    <Row gutter={[16, 16]} style={{ marginTop: 16, marginBottom: 24 }}>
-                        <Col xs={24}>
-                            <Card
-                                title={
-                                    <Space>
-                                        <CheckCircleOutlined />
-                                        <span>Atividade Recente</span>
-                                    </Space>
-                                }
-                                style={{
-                                    background: '#1f1f1f',
-                                    borderRadius: 12,
-                                    border: '1px solid #2a2a2a',
-                                }}
-                                headStyle={{
-                                    borderBottom: '1px solid #2a2a2a',
-                                    color: 'rgba(255, 255, 255, 0.95)'
-                                }}
-                            >
-                                <List
-                                    itemLayout="horizontal"
-                                    dataSource={[
-                                        {
-                                            icon: <ShoppingCartOutlined style={{ color: '#9146ff' }} />,
-                                            title: 'Novo pedido #456789',
-                                            description: 'João Silva fez um pedido de Teclado Mecânico',
-                                            time: 'há 15 minutos'
-                                        },
-                                        {
-                                            icon: <UserOutlined style={{ color: '#52c41a' }} />,
-                                            title: 'Novo cliente cadastrado',
-                                            description: 'Maria Santos se registrou no sistema',
-                                            time: 'há 1 hora'
-                                        },
-                                        {
-                                            icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
-                                            title: 'Pedido concluído',
-                                            description: 'Pedido #456788 foi entregue e finalizado',
-                                            time: 'há 2 horas'
-                                        },
-                                        {
-                                            icon: <ShoppingCartOutlined style={{ color: '#faad14' }} />,
-                                            title: 'Estoque atualizado',
-                                            description: '50 unidades de Mouse Gamer adicionadas',
-                                            time: 'há 3 horas'
-                                        },
-                                    ]}
-                                    renderItem={(item) => (
-                                        <List.Item style={{ border: 'none' }}>
-                                            <List.Item.Meta
-                                                avatar={
-                                                    <Avatar
-                                                        icon={item.icon}
-                                                        style={{ background: 'rgba(24, 144, 255, 0.1)' }}
-                                                    />
-                                                }
-                                                title={
-                                                    <span style={{ color: 'rgba(255, 255, 255, 0.95)' }}>
-                                                        {item.title}
-                                                    </span>
-                                                }
-                                                description={
-                                                    <span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
-                                                        {item.description}
-                                                    </span>
-                                                }
-                                            />
-                                            <Text type="secondary" style={{ fontSize: 12 }}>
-                                                {item.time}
-                                            </Text>
-                                        </List.Item>
-                                    )}
-                                />
-                            </Card>
-                        </Col>
-                    </Row>
+                                <Col xs={24} lg={10}>
+                                    <Card
+                                        title={
+                                            <Space>
+                                                <RiseOutlined />
+                                                <span>Produtos Mais Vendidos</span>
+                                            </Space>
+                                        }
+                                        style={{
+                                            background: '#1f1f1f',
+                                            borderRadius: 12,
+                                            border: '1px solid #2a2a2a',
+                                        }}
+                                        styles={{
+                                            header: {
+                                                borderBottom: '1px solid #2a2a2a',
+                                                color: 'rgba(255, 255, 255, 0.95)'
+                                            }
+                                        }}
+                                    >
+                                        <List
+                                            dataSource={produtosMaisVendidos}
+                                            renderItem={(item) => (
+                                                <List.Item style={{ border: 'none', padding: '12px 0' }}>
+                                                    <div style={{ width: '100%' }}>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            marginBottom: 8,
+                                                            color: 'rgba(255, 255, 255, 0.95)'
+                                                        }}>
+                                                            <span>{item.name}</span>
+                                                            <span style={{ color: '#9146ff' }}>{item.vendas} vendas</span>
+                                                        </div>
+                                                        <Progress
+                                                            percent={item.percentual}
+                                                            showInfo={false}
+                                                            strokeColor={{
+                                                                '0%': '#9146ff',
+                                                                '100%': '#52c41a',
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </List.Item>
+                                            )}
+                                        />
+                                    </Card>
+                                </Col>
+                            </Row>
+                        </>
+                    )}
                 </Content>
             </Layout>
         </Layout>

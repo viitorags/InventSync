@@ -42,7 +42,7 @@ export default function AppForm({
             cancelText="Cancelar"
             width={modalWidth}
             centered={!isMobile}
-            destroyOnClose
+            destroyOnHidden
             styles={{
                 body: {
                     background: '#1f1f1f',

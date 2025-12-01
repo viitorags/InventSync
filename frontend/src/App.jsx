@@ -1,5 +1,5 @@
 import Router from "./router";
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider, theme, App as AntApp } from 'antd';
 
 function App() {
     return (
@@ -14,7 +14,9 @@ function App() {
                 },
             }}
         >
-            <Router />
+            <AntApp>
+                <Router />
+            </AntApp>
         </ConfigProvider>
     );
 }

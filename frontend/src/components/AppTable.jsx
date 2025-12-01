@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Input, InputNumber, Popconfirm, Table } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
@@ -35,10 +35,14 @@ const EditableCell = ({
     );
 };
 
-export default function AppTable({ columns, data, onDelete, scroll }) {
+export default function AppTable({ columns, data, onDelete, onUpdate, scroll }) {
     const [form] = Form.useForm();
     const [tableData, setTableData] = useState(data);
     const [editingKey, setEditingKey] = useState('');
+
+    useEffect(() => {
+        setTableData(data);
+    }, [data]);
 
     const isEditing = record => record.key === editingKey;
 
@@ -56,9 +60,14 @@ export default function AppTable({ columns, data, onDelete, scroll }) {
             const index = newData.findIndex(item => key === item.key);
             if (index > -1) {
                 const item = newData[index];
-                newData.splice(index, 1, { ...item, ...row });
+                const updatedItem = { ...item, ...row };
+                newData.splice(index, 1, updatedItem);
                 setTableData(newData);
                 setEditingKey('');
+
+                if (onUpdate) {
+                    onUpdate(key, row);
+                }
             }
         } catch (err) {
             console.log('Erro de validação:', err);

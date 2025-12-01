@@ -1,72 +1,179 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout, Button, Form, Input, InputNumber, message, Space, Card } from "antd";
 import { MenuOutlined, PlusOutlined, FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons';
 import Sidebar from "../components/Sidebar.jsx";
 import AppTable from "../components/AppTable.jsx";
 import AppForm from "../components/AppForm.jsx";
+import { API_ENDPOINTS, apiGet, apiPost, apiDelete, getAuthHeaders } from '../config/api.js';
 
 const { Header, Content } = Layout;
+const { TextArea } = Input;
 
 export default function Stock() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
-    const [tableData, setTableData] = useState([
-        { key: "1", name: "Teclado Mecânico", quantity: 12, price: "R$ 250,00" },
-        { key: "2", name: "Mouse Gamer", quantity: 8, price: "R$ 180,00" },
-        { key: "3", name: "Monitor 24''", quantity: 5, price: "R$ 950,00" },
-    ]);
+    const [tableData, setTableData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const token = localStorage.getItem('token');
     const [form] = Form.useForm();
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    const fetchProducts = async () => {
+        setLoading(true);
+        try {
+            const response = await apiGet(API_ENDPOINTS.PRODUCTS, token);
+
+            if (response.ok) {
+                const data = await response.json();
+
+                const products = data.data || data;
+
+                if (!Array.isArray(products)) {
+                    console.error('❌ Products não é um array:', products);
+                    message.error('Formato de dados inválido');
+                    return;
+                }
+
+                const formattedData = products.map(product => ({
+                    key: product.product_id,
+                    product_id: product.product_id,
+                    name: product.product_name,
+                    quantity: product.product_amount,
+                    price: `R$ ${parseFloat(product.product_price).toFixed(2).replace('.', ',')}`,
+                    description: product.product_desc
+                }));
+
+                setTableData(formattedData);
+            } else {
+                message.error('Erro ao carregar produtos');
+            }
+        } catch (error) {
+            console.error('Erro ao buscar produtos:', error);
+            message.error('Erro ao carregar produtos');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const columns = [
         {
             title: "Produto",
             dataIndex: "name",
             editable: true,
-            width: "30%",
+            width: "25%",
         },
         {
             title: "Quantidade",
             dataIndex: "quantity",
             editable: true,
-            width: "20%",
+            width: "15%",
         },
         {
             title: "Preço",
             dataIndex: "price",
             editable: true,
-            width: "20%",
+            width: "15%",
+        },
+        {
+            title: "Descrição",
+            dataIndex: "description",
+            editable: true,
+            width: "30%",
         },
     ];
 
-    const handleDelete = (key) => {
-        setTableData(tableData.filter(item => item.key !== key));
-        message.success('Produto removido com sucesso!');
+    const handleDelete = async (key) => {
+        try {
+            const response = await apiDelete(API_ENDPOINTS.PRODUCT_BY_ID(key), token);
+
+            if (response.ok) {
+                message.success('Produto removido com sucesso!');
+                await fetchProducts();
+            } else {
+                const errorData = await response.json();
+                message.error(errorData.message || 'Erro ao remover produto');
+            }
+        } catch (error) {
+            console.error('Erro ao deletar produto:', error);
+            message.error('Erro ao remover produto');
+        }
     };
 
-    const handleAdd = (values) => {
-        const newProduct = {
-            key: Date.now().toString(),
-            name: values.name,
-            quantity: values.quantity,
-            price: `R$ ${values.price.toFixed(2).replace('.', ',')}`
-        };
-        setTableData([...tableData, newProduct]);
-        message.success('Produto adicionado com sucesso!');
-        form.resetFields();
-        setModalOpen(false);
+    const handleUpdate = async (key, values) => {
+        try {
+            const price = typeof values.price === 'string'
+                ? parseFloat(values.price.replace('R$', '').replace(',', '.').trim())
+                : values.price;
+
+            const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(key), {
+                method: 'PUT',
+                headers: getAuthHeaders(token),
+                body: JSON.stringify({
+                    product_name: values.name,
+                    product_price: price,
+                    product_amount: values.quantity,
+                    product_desc: values.description || 'Sem descrição',
+                }),
+            });
+
+            if (response.ok) {
+                message.success('Produto atualizado com sucesso!');
+                await fetchProducts();
+            } else {
+                const errorData = await response.json();
+                message.error(errorData.message || 'Erro ao atualizar produto');
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar produto:', error);
+            message.error('Erro ao atualizar produto');
+        }
+    };
+
+    const handleAdd = async (values) => {
+        setLoading(true);
+        try {
+            const response = await apiPost(
+                API_ENDPOINTS.PRODUCTS,
+                {
+                    product_name: values.name,
+                    product_price: values.price,
+                    product_amount: values.quantity,
+                    product_desc: values.description || 'Sem descrição',
+                },
+                token
+            );
+
+            if (response.ok) {
+                message.success('Produto adicionado com sucesso!');
+                form.resetFields();
+                setModalOpen(false);
+                await fetchProducts();
+            } else {
+                const errorData = await response.json();
+                console.error('Erro do servidor:', errorData);
+                message.error(errorData.message || 'Erro ao adicionar produto');
+            }
+        } catch (error) {
+            console.error('Erro ao adicionar produto:', error);
+            message.error('Erro ao adicionar produto');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const downloadReport = async (format) => {
         try {
             message.loading({ content: `Gerando relatório de produtos em ${format.toUpperCase()}...`, key: 'report' });
 
-            const url = `http://localhost:8000/api/reports/${format}/products`;
+            const headers = getAuthHeaders(token);
+            delete headers['Content-Type'];
 
-            const response = await fetch(url, {
+            const response = await fetch(API_ENDPOINTS.REPORT_PRODUCTS(format), {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
             });
 
             if (!response.ok) {
@@ -78,7 +185,7 @@ export default function Stock() {
             const link = document.createElement('a');
             link.href = downloadUrl;
 
-            const fileName = `Relatorio_Produtos_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+            const fileName = `Relatorio_Produtos_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'csv' : 'pdf'}`;
             link.download = fileName;
 
             document.body.appendChild(link);
@@ -160,7 +267,7 @@ export default function Stock() {
                                 Adicionar Produto
                             </Button>
                         </div>
-                        <AppTable columns={columns} data={tableData} onDelete={handleDelete} scroll={{ x: 768 }} />
+                        <AppTable columns={columns} data={tableData} onDelete={handleDelete} onUpdate={handleUpdate} scroll={{ x: 768 }} />
                     </div>
 
                     <AppForm
@@ -200,6 +307,13 @@ export default function Stock() {
                                 formatter={value => `R$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                                 parser={value => value.replace(/R\$\s?|(,*)/g, '')}
                             />
+                        </Form.Item>
+                        <Form.Item
+                            name="description"
+                            label={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>Descrição</span>}
+                            rules={[{ required: true, message: 'Por favor, insira a descrição!' }]}
+                        >
+                            <TextArea rows={3} placeholder="Ex: Teclado mecânico RGB com switches blue..." />
                         </Form.Item>
                     </AppForm>
                 </Content>

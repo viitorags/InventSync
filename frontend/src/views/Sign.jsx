@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message, Space, Upload } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, CameraOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api.js';
 
 const { Title, Text } = Typography;
 
@@ -13,16 +14,30 @@ export default function Sign() {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            console.log('Cadastro:', values);
-            console.log('Imagem:', imageUrl);
+            const response = await fetch(API_ENDPOINTS.REGISTER, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_name: values.name,
+                    user_email: values.email,
+                    user_avatar: imageUrl,
+                    user_password: values.password,
+                }),
+            });
 
-            //
+            const data = await response.json();
 
-            setTimeout(() => {
+            if (response.ok) {
                 message.success('Cadastro realizado com sucesso!');
-                navigate('/login');
-            }, 1000);
-
+                localStorage.setItem('token', data.access_token);
+                setTimeout(() => {
+                    navigate('/');
+                }, 1000);
+            } else {
+                message.error(data.message || 'Erro ao criar conta. Tente novamente.');
+            }
         } catch (error) {
             message.error('Erro ao criar conta. Tente novamente.');
             console.error('Erro:', error);
