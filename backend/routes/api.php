@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 // Rotas publicas para autenticação
@@ -15,6 +16,8 @@ Route::middleware('jwt.auth')->group(function () {
     // Usuários
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::put('/auth/update', [AuthController::class, 'update']);
+    Route::delete('/auth/delete', [AuthController::class, 'destroy']);
 
     // Produtos
     Route::get('/products', [ProductController::class, 'index']);
@@ -33,4 +36,9 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/orders', [OrdersController::class, 'store']);
     Route::put('/orders', [OrdersController::class, 'update']);
     Route::delete('/orders', [OrdersController::class, 'destroy']);
+
+    // Relatórios
+    Route::get('/reports/{format}/sales', [ReportController::class, 'sales']);
+    Route::get('/reports/{format}/products', [ReportController::class, 'products']);
+    Route::get('/reports/{format}/clients', [ReportController::class, 'customers']);
 });
