@@ -17,11 +17,13 @@ docker-compose.yml
 /vendor/
 composer.phar
 /frontend/node_modules
+.direnv/
 
 # Configurações de ambiente
 .env
 .env.*.local
 .env.local
+.envrc
 
 # Logs, cache e temporários
 /logs/
