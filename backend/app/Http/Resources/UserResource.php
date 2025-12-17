@@ -17,10 +17,10 @@ class UserResource extends JsonResource
     {
         $avatarUrl = null;
         if ($this->user_avatar) {
-            if (!str_starts_with($this->user_avatar, 'http')) {
-                $avatarUrl = url('storage/' . $this->user_avatar) . '?t=' . time();
-            } else {
+            if (str_starts_with($this->user_avatar, 'http')) {
                 $avatarUrl = $this->user_avatar;
+            } else {
+                $avatarUrl = secure_url(Storage::url($this->user_avatar)) . '?t=' . time();
             }
         }
 
