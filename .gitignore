@@ -2,7 +2,6 @@
 .DS_Store
 Thumbs.db
 desktop.ini
-Dockerfile
 docker-compose.yml
 
 # Editores / IDEs
