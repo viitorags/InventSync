@@ -1,0 +1,5 @@
+{
+    "build": {
+      "phpVersion": "8.5"
+    }
+  }
