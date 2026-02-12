@@ -14,7 +14,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 COPY . .
-RUN composer install --optimize-autoloader --no-dev
+RUN cp .env.example .env || true
+RUN composer install --optimize-autoloader --no-dev --no-interaction --no-scripts
 RUN mkdir -p storage/logs
 
 RUN usermod -u 1000 www-data
