@@ -1,13 +1,20 @@
-FROM php:8.5-fpm
+FROM php:8.5-cli
+
+WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    git
-
-RUN docker-php-ext-install gd mysqli pdo pdo_mysql bcmath zip
+    unzip git libpng-dev libzip-dev zip \
+    libonig-dev libxml2-dev libcurl4-openssl-dev \
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        bcmath \
+        gd \
+        zip \
+        mbstring \
+        xml \
+        curl \
+        fileinfo
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
