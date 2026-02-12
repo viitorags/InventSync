@@ -14,7 +14,8 @@ RUN apt-get update && apt-get install -y \
         mbstring \
         xml \
         curl \
-        fileinfo
+        fileinfo \
+        openssl
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
